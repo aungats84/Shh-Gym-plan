@@ -1,0 +1,122 @@
+@import 'tailwindcss';
+
+/* Manual light/dark switching: we add .dark to <html> ourselves so the
+   Settings toggle wins over the operating system setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-bg: #f7f8f7;
+  --color-surface: #ffffff;
+  --color-surface-2: #f0f3f1;
+  --color-border: #d8ded9;
+  --color-text: #14201e;
+  --color-muted: #55625e;
+  --color-accent: #2f4f4a;
+  --color-accent-text: #ffffff;
+  --color-accent-soft: #e4ecea;
+  --color-good: #1f5f43;
+  --color-good-soft: #e2f0e9;
+  --color-warn: #7a5200;
+  --color-warn-soft: #f8eed6;
+  --color-danger: #8f2323;
+  --color-danger-soft: #f9e5e5;
+
+  --radius-card: 8px;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans Thai', sans-serif;
+}
+
+/* Dark palette. Same token names, different values, so no component
+   needs to know which theme is active. */
+.dark {
+  --color-bg: #101817;
+  --color-surface: #18221f;
+  --color-surface-2: #1f2b28;
+  --color-border: #2d3b37;
+  --color-text: #e7eeeb;
+  --color-muted: #9aa7a3;
+  --color-accent: #8fc0b5;
+  --color-accent-text: #0d1615;
+  --color-accent-soft: #23322e;
+  --color-good: #8ed0af;
+  --color-good-soft: #1b2b24;
+  --color-warn: #e3bd74;
+  --color-warn-soft: #2b2519;
+  --color-danger: #f0a3a3;
+  --color-danger-soft: #2e1c1c;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-bg);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    /* Never allow sideways scrolling on a phone. */
+    overflow-x: hidden;
+    min-height: 100dvh;
+  }
+
+  /* Visible keyboard focus everywhere - required for WCAG AA. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--color-text);
+    text-wrap: balance;
+  }
+
+  /* Stop long words (Thai dish names, URLs) forcing horizontal scroll. */
+  p,
+  li,
+  td,
+  th,
+  h1,
+  h2,
+  h3 {
+    overflow-wrap: break-word;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+
+  /* Respect "reduce motion" accessibility setting. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--tw-safe-extra, 0px));
+}
+
+@utility safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+@utility safe-x {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+}
