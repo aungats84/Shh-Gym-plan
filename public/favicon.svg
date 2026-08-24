@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="San Training">
+  <rect width="64" height="64" rx="12" fill="#2f4f4a"/>
+  <g fill="#f0f4f2">
+    <rect x="19" y="29.3" width="26" height="5.4" rx="2.7"/>
+    <rect x="12.8" y="22.4" width="4.8" height="19.2" rx="2.2"/>
+    <rect x="46.4" y="22.4" width="4.8" height="19.2" rx="2.2"/>
+    <rect x="19.4" y="26" width="3.5" height="12" rx="1.6"/>
+    <rect x="41.1" y="26" width="3.5" height="12" rx="1.6"/>
+  </g>
+</svg>
