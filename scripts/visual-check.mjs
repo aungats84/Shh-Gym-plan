@@ -16,7 +16,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const DIST = path.resolve('dist');
-const BASE = '/san-training/';
+const BASE = '/Shh-Gym-plan/';
 const PORT = 4178;
 
 const TYPES = {
@@ -89,19 +89,19 @@ const PROFILE = {
 
 const PAGES = [
   ['', 'today'],
-  ['#/workouts', 'workouts'],
-  ['#/workouts/lower_a', 'workout-session'],
-  ['#/meals', 'meals'],
-  ['#/pre-workout', 'pre-workout'],
-  ['#/recovery', 'recovery'],
-  ['#/heat', 'heat'],
-  ['#/cardio', 'cardio'],
-  ['#/sleep', 'sleep'],
+  ['#/train', 'train-workouts'],
+  ['#/train/before', 'train-before'],
+  ['#/train/after', 'train-after'],
+  ['#/train/cardio', 'train-cardio'],
+  ['#/train/heat', 'train-heat'],
+  ['#/train/session/lower_a', 'session'],
+  ['#/food', 'food'],
   ['#/progress', 'progress'],
-  ['#/weekly-review', 'weekly-review'],
-  ['#/tutorials', 'tutorials'],
-  ['#/transfer', 'transfer'],
-  ['#/settings', 'settings'],
+  ['#/progress/sleep', 'sleep'],
+  ['#/progress/review', 'review'],
+  ['#/more', 'more-howto'],
+  ['#/more/transfer', 'transfer'],
+  ['#/more/settings', 'settings'],
 ];
 
 const VIEWPORTS = [
@@ -164,7 +164,11 @@ for (const vp of VIEWPORTS) {
   const page = await context.newPage();
 
   page.on('console', (m) => {
-    if (m.type() === 'error') note(`[${vp.name}] console error: ${m.text().slice(0, 160)}`);
+    const t = m.text();
+    // Google Fonts and YouTube thumbnails are unreachable from the build
+    // sandbox. Those failures say nothing about the app itself.
+    const offsite = /ERR_TUNNEL_CONNECTION_FAILED|fonts\.g|ytimg|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED/.test(t);
+    if (m.type() === 'error' && !offsite) note(`[${vp.name}] console error: ${t.slice(0, 160)}`);
   });
   page.on('pageerror', (e) => note(`[${vp.name}] page error: ${String(e).slice(0, 160)}`));
 
@@ -219,11 +223,12 @@ for (const vp of VIEWPORTS) {
         }
       }
 
-      // Design rules: no card inside a card, radius never above 8px.
+      // Design rules: no card directly inside another card; radius stays
+      // within the system's scale (20px is the largest token).
       out.cardInCard = document.querySelectorAll('section section').length;
-      for (const el of document.querySelectorAll('section, .rounded-\\[8px\\]')) {
+      for (const el of document.querySelectorAll('section')) {
         const radius = parseFloat(getComputedStyle(el).borderTopLeftRadius);
-        if (radius > 8.5 && radius < 1000) out.bigRadius.push(`${el.tagName} ${radius}px`);
+        if (radius > 20.5 && radius < 1000) out.bigRadius.push(`${el.tagName} ${radius}px`);
       }
 
       return out;
