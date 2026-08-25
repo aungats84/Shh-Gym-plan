@@ -24,8 +24,8 @@ export default defineConfig(({ mode }) => {
           short_name: 'San Training',
           description:
           'Personal training, nutrition, recovery and progress tracking. Stored on your device.',
-          theme_color: '#2f4f4a',
-          background_color: '#f7f8f7',
+          theme_color: '#b04459',
+          background_color: '#fbf0ef',
           display: 'standalone',
           orientation: 'any',
           start_url: base,
