@@ -4,37 +4,51 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
-  /* ---- light ---------------------------------------------------- */
-  --color-bg: #f2f5f4;
-  --color-bg-deep: #e8edeb;
+  /* ---------------------------------------------------------------- */
+  /* Blush - the palette from the theme folder.                        */
+  /* Pink carries the brand; rose does the work of buttons, progress   */
+  /* and active states; sage is the calm second voice for rest and     */
+  /* recovery. The neutral ramp is warm on purpose - no cool greys.    */
+  /*                                                                   */
+  /* Every pairing below was measured against WCAG before use. Where   */
+  /* the palette's rose is too light to carry a label (white on rose   */
+  /* is 3.5:1), buttons use pink 700 instead and rose is kept for the  */
+  /* non-text work it passes on: bars, rings and focus.                */
+  /* ---------------------------------------------------------------- */
+
+  --color-bg: #fbf0ef;
+  --color-bg-deep: #f0e8e7;
   --color-surface: #ffffff;
-  --color-surface-2: #f4f7f6;
-  --color-line: #dde4e1;
-  --color-line-soft: #e8edeb;
+  --color-surface-2: #fff4f7;
+  --color-line: #ded1d2;
+  --color-line-soft: #f0e8e7;
 
-  --color-text: #0e1a18;
-  --color-muted: #5b6b67;
-  --color-faint: #869792;
+  --color-text: #2a1c1f;
+  --color-muted: #665358;
+  --color-faint: #847074;
 
-  --color-accent: #0f766e;
-  --color-accent-2: #14a08d;
+  /* Text and button fills. 5.5:1 on white. */
+  --color-accent: #b04459;
+  /* Bars, rings, focus - graphical only, 3.5:1 on white. */
+  --color-accent-strong: #d9637f;
+  --color-accent-2: #7f2d3c;
   --color-on-accent: #ffffff;
-  --color-accent-wash: #dcefec;
+  --color-accent-wash: #ffe4ec;
 
-  --color-warm: #b45309;
-  --color-warm-wash: #fbeedd;
-  --color-alert: #b91c1c;
-  --color-alert-wash: #fce8e6;
-  --color-win: #0f7a52;
-  --color-win-wash: #ddf1e8;
+  --color-warm: #8a5a12;
+  --color-warm-wash: #faefdc;
+  --color-alert: #9c2b2b;
+  --color-alert-wash: #fbe8e6;
+  --color-win: #56633f;
+  --color-win-wash: #f0fae1;
 
   --radius-xl: 20px;
   --radius-lg: 16px;
   --radius-md: 12px;
   --radius-sm: 10px;
 
-  --shadow-soft: 0 1px 2px rgb(14 26 24 / 0.04), 0 10px 30px -18px rgb(14 26 24 / 0.28);
-  --shadow-lift: 0 2px 6px rgb(14 26 24 / 0.06), 0 22px 48px -28px rgb(14 26 24 / 0.4);
+  --shadow-soft: 0 1px 2px rgb(42 28 31 / 0.05), 0 10px 30px -18px rgb(42 28 31 / 0.3);
+  --shadow-lift: 0 2px 6px rgb(42 28 31 / 0.07), 0 22px 48px -28px rgb(42 28 31 / 0.42);
 
   --font-display: Sora, ui-sans-serif, system-ui, sans-serif;
   --font-sans:
@@ -42,30 +56,32 @@
     sans-serif;
 }
 
-/* ---- dark: its own steps, not an inversion ---------------------- */
+/* Dark: pink lifts off ink. Pink 400 for accents, never rose 600 -
+   it goes muddy on a dark ground. */
 .dark {
-  --color-bg: #080d0c;
-  --color-bg-deep: #050908;
-  --color-surface: #101a18;
-  --color-surface-2: #16221f;
-  --color-line: #23322e;
-  --color-line-soft: #1a2724;
+  --color-bg: #1b1214;
+  --color-bg-deep: #140d0f;
+  --color-surface: #2a1c1f;
+  --color-surface-2: #35252a;
+  --color-line: #48383d;
+  --color-line-soft: #3a2a2f;
 
-  --color-text: #e9f1ee;
-  --color-muted: #93a5a0;
-  --color-faint: #6d807b;
+  --color-text: #fbf7f6;
+  --color-muted: #c3b2b4;
+  --color-faint: #a49093;
 
-  --color-accent: #35d6ae;
-  --color-accent-2: #6ee7c4;
-  --color-on-accent: #04231c;
-  --color-accent-wash: #122b26;
+  --color-accent: #fbaac0;
+  --color-accent-strong: #ffc9d8;
+  --color-accent-2: #ffe4ec;
+  --color-on-accent: #4f1b25;
+  --color-accent-wash: #3e2229;
 
-  --color-warm: #f0b45f;
-  --color-warm-wash: #2a2015;
-  --color-alert: #ff8f87;
-  --color-alert-wash: #2c1614;
-  --color-win: #59dba6;
-  --color-win-wash: #0f2a20;
+  --color-warm: #e0a13a;
+  --color-warm-wash: #33261a;
+  --color-alert: #f0a0a0;
+  --color-alert-wash: #3a1e1e;
+  --color-win: #aebf92;
+  --color-win-wash: #272e1b;
 
   --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.5), 0 10px 30px -18px rgb(0 0 0 / 0.8);
   --shadow-lift: 0 2px 8px rgb(0 0 0 / 0.55), 0 26px 54px -30px rgb(0 0 0 / 0.9);
@@ -107,7 +123,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-accent-strong);
     outline-offset: 2px;
     border-radius: 6px;
   }
@@ -129,7 +145,7 @@
   }
 
   ::selection {
-    background: var(--color-accent);
+    background: var(--color-accent-strong);
     color: var(--color-on-accent);
   }
 
