@@ -235,7 +235,7 @@ export default function WorkoutSession() {
                 return (
                   <div
                     key={row.set_index}
-                    className="flex flex-wrap items-center gap-2 rounded-[8px] border border-border p-2"
+                    className="flex flex-wrap items-center gap-2 rounded-[8px] border border-line p-2"
                   >
                     <span className="w-12 shrink-0 text-xs text-muted">
                       Set {row.set_index + 1}
@@ -252,7 +252,7 @@ export default function WorkoutSession() {
                           reps: e.target.value ? Number(e.target.value) : null,
                         })
                       }
-                      className="h-11 w-16 rounded-[8px] border border-border bg-surface px-2 text-sm"
+                      className="h-11 w-16 rounded-[8px] border border-line bg-surface px-2 text-sm"
                     />
                     <input
                       type="number"
@@ -266,7 +266,7 @@ export default function WorkoutSession() {
                           weight_kg: e.target.value ? Number(e.target.value) : null,
                         })
                       }
-                      className="h-11 w-16 rounded-[8px] border border-border bg-surface px-2 text-sm"
+                      className="h-11 w-16 rounded-[8px] border border-line bg-surface px-2 text-sm"
                     />
                     <select
                       aria-label={`Reps in reserve for set ${row.set_index + 1}`}
@@ -276,7 +276,7 @@ export default function WorkoutSession() {
                           rir: e.target.value === '' ? null : Number(e.target.value),
                         })
                       }
-                      className="h-11 w-20 rounded-[8px] border border-border bg-surface px-1 text-sm"
+                      className="h-11 w-20 rounded-[8px] border border-line bg-surface px-1 text-sm"
                     >
                       <option value="">RIR</option>
                       {[0, 1, 2, 3, 4, 5].map((n) => (
@@ -286,7 +286,7 @@ export default function WorkoutSession() {
                       ))}
                     </select>
                     {pr && (
-                      <span className="flex items-center gap-1 text-xs text-good">
+                      <span className="flex items-center gap-1 text-xs text-win">
                         <Award className="h-3.5 w-3.5" aria-hidden /> Best yet
                       </span>
                     )}
@@ -295,7 +295,7 @@ export default function WorkoutSession() {
                       onClick={() => updateSet(exerciseId, row.set_index, { done: !row.done })}
                       aria-pressed={row.done}
                       className={`ml-auto h-11 shrink-0 rounded-[8px] border px-3 text-sm font-medium ${
-                        row.done ? 'border-good bg-good text-white' : 'border-border bg-surface'
+                        row.done ? 'border-win bg-win text-white' : 'border-line bg-surface'
                       }`}
                     >
                       {row.done ? 'Done' : 'Mark done'}
@@ -311,7 +311,7 @@ export default function WorkoutSession() {
               </div>
             )}
 
-            <div className="mt-3 rounded-[8px] border border-border bg-surface-2 p-3 text-sm">
+            <div className="mt-3 rounded-[8px] border border-line bg-surface-2 p-3 text-sm">
               <p className="font-medium">{advice.headline}</p>
               <p className="mt-0.5 text-muted">{advice.detail}</p>
             </div>

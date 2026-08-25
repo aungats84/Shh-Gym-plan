@@ -152,7 +152,7 @@ export default function HeatSafety() {
       <Card title="If it is raining or too hot" subtitle="These count as your cardio session.">
         <ul className="space-y-2 text-sm">
           {INDOOR_CARDIO.map((c) => (
-            <li key={c.name} className="rounded-[8px] border border-border p-2">
+            <li key={c.name} className="rounded-[8px] border border-line p-2">
               <p className="font-medium">{c.name}</p>
               <p className="text-muted">{c.detail}</p>
               <p className="mt-0.5 text-xs text-muted">Needs: {c.equipment}</p>

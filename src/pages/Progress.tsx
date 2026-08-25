@@ -246,7 +246,7 @@ export default function Progress() {
             <ScrollX>
               <table className="w-full min-w-[420px] text-sm">
                 <thead>
-                  <tr className="border-b border-border text-left text-xs text-muted">
+                  <tr className="border-b border-line text-left text-xs text-muted">
                     <th className="py-1.5 pr-3 font-medium">Date</th>
                     <th className="py-1.5 pr-3 font-medium">Weight</th>
                     <th className="py-1.5 pr-3 font-medium">Waist</th>
@@ -255,7 +255,7 @@ export default function Progress() {
                 </thead>
                 <tbody>
                   {[...measurements].reverse().map((m) => (
-                    <tr key={m.date} className="border-b border-border last:border-0">
+                    <tr key={m.date} className="border-b border-line last:border-0">
                       <td className="py-1.5 pr-3">{prettyDate(m.date)}</td>
                       <td className="py-1.5 pr-3 tabular-nums">{m.weight_kg ?? '-'}</td>
                       <td className="py-1.5 pr-3 tabular-nums">{m.waist_cm ?? '-'}</td>

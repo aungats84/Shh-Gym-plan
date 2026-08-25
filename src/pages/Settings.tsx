@@ -447,7 +447,7 @@ EVIDENCE BASE
           </span>
         </label>
 
-        <div className="rounded-[8px] border border-border bg-surface-2 p-3 text-sm">
+        <div className="rounded-[8px] border border-line bg-surface-2 p-3 text-sm">
           <p className="font-medium">With these settings your targets would be:</p>
           <p className="mt-1">
             {preview.target_kcal} kcal, {preview.protein_g} g protein, {preview.carbs_g} g carbs,{' '}

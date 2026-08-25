@@ -254,7 +254,7 @@ export default function Transfer() {
       >
         <Field label="What should happen to what is already on this device?">
           <div className="space-y-2">
-            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[8px] border border-border p-2 text-sm">
+            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[8px] border border-line p-2 text-sm">
               <input
                 type="radio"
                 name="mode"
@@ -267,7 +267,7 @@ export default function Transfer() {
                 newer version wins. Nothing is lost. <em>Recommended.</em>
               </span>
             </label>
-            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[8px] border border-border p-2 text-sm">
+            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[8px] border border-line p-2 text-sm">
               <input
                 type="radio"
                 name="mode"

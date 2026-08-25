@@ -278,7 +278,7 @@ export default function WeeklyReviewPage() {
             {[...data.plan_versions]
               .sort((a, b) => b.version - a.version)
               .map((v) => (
-                <li key={v.version} className="rounded-[8px] border border-border p-2">
+                <li key={v.version} className="rounded-[8px] border border-line p-2">
                   <p className="font-medium">Version {v.version}</p>
                   <p className="text-muted">{v.reason}</p>
                   <p className="mt-0.5 text-xs text-muted">

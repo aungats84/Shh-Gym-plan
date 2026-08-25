@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Heart, ShoppingCart } from 'lucide-react';
+import { Check, Heart, ShoppingCart, X } from 'lucide-react';
 import { useData } from '@/state/DataContext';
 import { usePlan } from '@/state/usePlan';
 import {
@@ -21,11 +21,14 @@ import {
   NUTRITION_NOTE,
   PRICE_NOTE,
   PRICE_REVIEWED_ON,
+  findOption,
   mealsForDay,
   type MealOption,
   type OptionKind,
 } from '@/data/meals';
 import { buildGroceryList, groceryTotal, totalsFor } from '@/domain/grocery';
+import { mealVideoFor } from '@/data/tutorials';
+import VideoLink from '@/components/VideoLink';
 import { readCache, writeCache } from '@/lib/storage';
 import { prettyDate, weekStart } from '@/lib/time';
 import type { MealSlot } from '@/lib/types';
@@ -70,6 +73,11 @@ export default function Meals() {
       custom_kcal: null,
       custom_protein_g: null,
     });
+  }
+
+  /** Undo an accidental tap. Nothing about the day is kept. */
+  function clearSlot(slot: MealSlot) {
+    data.remove('meal_selections', `${date}|${slot}`);
   }
 
   function logIt(slot: MealSlot) {
@@ -136,6 +144,30 @@ export default function Meals() {
           unit=" THB"
           tone={overBudget ? 'warn' : 'accent'}
         />
+        {selections.length > 0 && (
+          <ul className="mt-3 space-y-1.5 border-t border-line pt-3">
+            {selections.map((sel) => {
+              const f = findOption(sel.meal_id);
+              const name = f?.option.name ?? sel.custom_name ?? 'Custom meal';
+              const kcal = f ? f.option.kcal : (sel.custom_kcal ?? 0);
+              return (
+                <li key={sel.slot} className="flex items-center gap-2 text-[13px]">
+                  <span className="min-w-0 flex-1 truncate">{name}</span>
+                  <span className="shrink-0 tabular-nums text-faint">{kcal} kcal</span>
+                  <button
+                    type="button"
+                    onClick={() => clearSlot(sel.slot)}
+                    aria-label={`Remove ${name}`}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-line text-faint"
+                  >
+                    <X className="h-3.5 w-3.5" aria-hidden />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+
         {overBudget && (
           <div className="mt-2">
             <Notice tone="warn">
@@ -174,12 +206,18 @@ export default function Meals() {
                   <div
                     key={o.id}
                     className={`rounded-[8px] border p-3 ${
-                      isSelected ? 'border-accent bg-accent-soft' : 'border-border'
+                      isSelected ? 'border-accent bg-accent-wash' : 'border-line'
                     }`}
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
+                          {isSelected && (
+                            <Pill tone="win">
+                              <Check className="h-3 w-3" aria-hidden />
+                              Chosen
+                            </Pill>
+                          )}
                           <Pill tone={o.kind === meal.recommended ? 'accent' : 'plain'}>
                             {KIND_LABEL[o.kind]}
                           </Pill>
@@ -199,7 +237,7 @@ export default function Meals() {
                           favourites.includes(o.id) ? 'Remove favourite' : 'Add favourite'
                         }
                         aria-pressed={favourites.includes(o.id)}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-border"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-line"
                       >
                         <Heart
                           className={`h-4 w-4 ${favourites.includes(o.id) ? 'fill-accent text-accent' : ''}`}
@@ -277,22 +315,41 @@ export default function Meals() {
                       </p>
                     </details>
 
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        size="sm"
-                        variant={isSelected ? 'secondary' : 'primary'}
-                        onClick={() => choose(meal.slot, o)}
-                      >
-                        {isSelected ? 'Selected' : 'Choose this'}
-                      </Button>
-                      {isSelected && (
-                        <Button
-                          size="sm"
-                          variant={selected?.logged ? 'secondary' : 'primary'}
-                          onClick={() => logIt(meal.slot)}
-                        >
-                          {selected?.logged ? 'Logged' : 'Mark as eaten'}
+                    {o.kind === 'home' && mealVideoFor(o.id) && (
+                      <div className="mt-3">
+                        <VideoLink
+                          exerciseName={o.name}
+                          searchPhrase={`${o.name} recipe`}
+                          video={mealVideoFor(o.id)}
+                        />
+                      </div>
+                    )}
+
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {!isSelected ? (
+                        <Button size="sm" onClick={() => choose(meal.slot, o)}>
+                          Choose this
                         </Button>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            variant={selected?.logged ? 'secondary' : 'primary'}
+                            onClick={() => logIt(meal.slot)}
+                          >
+                            {selected?.logged ? 'Eaten' : 'Mark as eaten'}
+                          </Button>
+                          {/* Chose the wrong thing by accident? Undo it. */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => clearSlot(meal.slot)}
+                            ariaLabel={`Remove ${o.name} from this meal`}
+                          >
+                            <X className="h-3.5 w-3.5" aria-hidden />
+                            Remove
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -351,7 +408,7 @@ export default function Meals() {
               {grocery.map((g) => (
                 <li
                   key={g.name}
-                  className="flex justify-between gap-2 border-b border-border pb-1 last:border-0"
+                  className="flex justify-between gap-2 border-b border-line pb-1 last:border-0"
                 >
                   <span>
                     {g.name} <span className="text-muted">({g.quantity})</span>
@@ -371,7 +428,7 @@ export default function Meals() {
       >
         <ul className="space-y-2 text-sm">
           {EXTRAS.map((e) => (
-            <li key={e.id} className="rounded-[8px] border border-border p-2">
+            <li key={e.id} className="rounded-[8px] border border-line p-2">
               <p className="font-medium">{e.name}</p>
               <p className="text-muted">
                 {e.portion} - {e.kcal} kcal, {e.protein_g} g protein, {e.cost_thb} THB

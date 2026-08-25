@@ -39,7 +39,7 @@ export default function Cardio() {
         <ScrollX>
           <table className="w-full min-w-[420px] text-sm">
             <thead>
-              <tr className="border-b border-border text-left text-xs text-muted">
+              <tr className="border-b border-line text-left text-xs text-muted">
                 <th className="py-1.5 pr-3 font-medium">Week</th>
                 <th className="py-1.5 pr-3 font-medium">Runs</th>
                 <th className="py-1.5 pr-3 font-medium">Minutes</th>
@@ -51,7 +51,7 @@ export default function Cardio() {
               {CARDIO_PLAN.map((w) => (
                 <tr
                   key={w.week}
-                  className={`border-b border-border last:border-0 ${w.week === plan.week ? 'bg-accent-soft' : ''}`}
+                  className={`border-b border-line last:border-0 ${w.week === plan.week ? 'bg-accent-wash' : ''}`}
                 >
                   <td className="py-1.5 pr-3">
                     {w.week} {w.week === plan.week && <Pill tone="accent">Now</Pill>}
@@ -75,7 +75,7 @@ export default function Cardio() {
       >
         <ul className="space-y-2 text-sm">
           {TALK_TEST.map((t) => (
-            <li key={t.level} className="rounded-[8px] border border-border p-2">
+            <li key={t.level} className="rounded-[8px] border border-line p-2">
               <p className="font-medium">{t.level}</p>
               <p className="text-muted">{t.detail}</p>
             </li>
@@ -106,7 +106,7 @@ export default function Cardio() {
       >
         <ul className="space-y-2 text-sm">
           {INDOOR_CARDIO.map((c) => (
-            <li key={c.name} className="rounded-[8px] border border-border p-2">
+            <li key={c.name} className="rounded-[8px] border border-line p-2">
               <p className="font-medium">{c.name}</p>
               <p className="text-muted">{c.detail}</p>
             </li>
