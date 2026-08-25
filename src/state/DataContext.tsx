@@ -102,8 +102,21 @@ function storageWorks(): boolean {
   }
 }
 
+/**
+ * The app used to follow the phone's own light/dark setting, which meant
+ * the same account looked different on a laptop and a phone. It now picks
+ * light unless you deliberately choose dark in Settings, so both devices
+ * match. This upgrades a profile that was still on the old default.
+ */
+function withMatchingTheme(data: DataState): DataState {
+  if (!data.profile || data.profile.theme !== 'system') return data;
+  return { ...data, profile: { ...data.profile, theme: 'light' } };
+}
+
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<DataState>(() => readCache<DataState>(CACHE_KEY, EMPTY));
+  const [state, setState] = useState<DataState>(() =>
+    withMatchingTheme(readCache<DataState>(CACHE_KEY, EMPTY)),
+  );
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() =>
     readCache<string | null>(SAVED_KEY, null),
   );
@@ -171,7 +184,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const importAll = useCallback(
     (data: Partial<DataState>) => {
-      setState((s) => ({ ...s, ...data }));
+      setState((s) => withMatchingTheme({ ...s, ...data }));
       stampSave();
     },
     [stampSave],
@@ -223,7 +236,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           next[collection] = [...merged.values()];
         }
 
-        return next;
+        return withMatchingTheme(next);
       });
 
       stampSave();
