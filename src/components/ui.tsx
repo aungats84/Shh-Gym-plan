@@ -306,9 +306,13 @@ export function Meter({
 }) {
   const pct = max > 0 ? Math.min(100, Math.round((value / max) * 100)) : 0;
   const bar =
-    { accent: 'bg-accent', win: 'bg-win', warm: 'bg-warm', alert: 'bg-alert', plain: 'bg-accent' }[
-      tone(toneProp, 'accent')
-    ] ?? 'bg-accent';
+    {
+      accent: 'bg-accent-strong',
+      win: 'bg-win',
+      warm: 'bg-warm',
+      alert: 'bg-alert',
+      plain: 'bg-accent-strong',
+    }[tone(toneProp, 'accent')] ?? 'bg-accent-strong';
   return (
     <div className="mb-3 last:mb-0">
       <div className="mb-1.5 flex items-baseline justify-between gap-2">
@@ -376,7 +380,7 @@ export function Ring({
             fill="none"
             strokeWidth="9"
             strokeLinecap="round"
-            className="animate-sweep stroke-accent"
+            className="animate-sweep stroke-accent-strong"
             strokeDasharray={c}
             strokeDashoffset={c * (1 - pct)}
             style={{ ['--dash-from' as string]: `${c}` }}
@@ -478,7 +482,7 @@ export function Stepper({
           aria-label={`${label} progress`}
         >
           <div
-            className={`h-full rounded-full transition-[width] duration-500 ${done ? 'bg-win' : 'bg-accent'}`}
+            className={`h-full rounded-full transition-[width] duration-500 ${done ? 'bg-win' : 'bg-accent-strong'}`}
             style={{ width: `${pct}%` }}
           />
         </div>

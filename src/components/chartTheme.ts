@@ -1,22 +1,24 @@
 /**
- * Chart colours.
+ * Chart colours, drawn from the Blush palette.
  *
- * These two palettes were validated with the data-visualisation
- * colour checks: lightness band, chroma floor, colour-blind
- * separation, normal-vision separation, and contrast against the
- * chart surface. Both pass every check in their own mode.
+ * Only one chart on the site plots two series at once (the weight
+ * chart: a weekly-average line over single weigh-in dots), so the
+ * palette needs one distinguishable pair rather than a long ramp.
+ * That pair was run through the colour checks - lightness band,
+ * chroma floor, colour-blind separation, normal-vision separation and
+ * contrast against the chart surface - and passes in both modes.
  *
- * Dark mode uses its own steps rather than lightening the light ones,
- * because an automatic flip does not stay legible.
+ * Slots 2 and 3 are only ever used on single-series charts, where
+ * nothing sits next to them to be confused with.
  *
- * Hues are assigned in a fixed order and never cycled. If a chart
- * ever needs a fifth series, it should become two charts instead.
+ * Dark mode uses its own steps. The palette is explicit that rose goes
+ * muddy on a dark ground, so the dark pair is lifted accordingly.
  */
 
 import { useEffect, useState } from 'react';
 
-export const SERIES_LIGHT = ['#00805c', '#b25f00', '#4f63c8', '#9d2a6a'] as const;
-export const SERIES_DARK = ['#22a077', '#bd7d2c', '#7182d6', '#c65f8d'] as const;
+export const SERIES_LIGHT = ['#d9637f', '#4f7a31', '#8a5a12', '#6b4d52'] as const;
+export const SERIES_DARK = ['#db6c88', '#79994a', '#e0a13a', '#a49093'] as const;
 
 export interface ChartTheme {
   series: readonly string[];
@@ -30,22 +32,22 @@ export interface ChartTheme {
 
 const LIGHT: ChartTheme = {
   series: SERIES_LIGHT,
-  grid: '#e7ebe9',
-  axis: '#8b9793',
+  grid: '#ece2e2',
+  axis: '#a49093',
   surface: '#ffffff',
-  text: '#14201e',
-  muted: '#55625e',
-  reference: '#8b9793',
+  text: '#2a1c1f',
+  muted: '#665358',
+  reference: '#a49093',
 };
 
 const DARK: ChartTheme = {
   series: SERIES_DARK,
-  grid: '#2d3b37',
-  axis: '#77837f',
-  surface: '#18221f',
-  text: '#e7eeeb',
-  muted: '#9aa7a3',
-  reference: '#77837f',
+  grid: '#3a2a2f',
+  axis: '#847074',
+  surface: '#2a1c1f',
+  text: '#fbf7f6',
+  muted: '#c3b2b4',
+  reference: '#847074',
 };
 
 /** Re-reads the theme whenever the dark class on <html> changes. */
