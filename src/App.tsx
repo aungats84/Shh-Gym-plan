@@ -24,24 +24,20 @@ import Settings from '@/pages/Settings';
 const Progress = lazy(() => import('@/pages/Progress'));
 const Transfer = lazy(() => import('@/pages/Transfer'));
 
-/** Applies the light/dark choice to the <html> element. */
+/**
+ * Applies the light/dark choice to the <html> element.
+ *
+ * Light unless dark is chosen deliberately. Following the device's own
+ * setting is what made the phone and the laptop look like two different
+ * apps, so 'system' is treated as light and is no longer offered.
+ */
 function useTheme() {
   const { profile } = useData();
-  const choice = profile?.theme ?? 'system';
+  const dark = profile?.theme === 'dark';
 
   useEffect(() => {
-    const root = document.documentElement;
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => {
-      const dark = choice === 'dark' || (choice === 'system' && media.matches);
-      root.classList.toggle('dark', dark);
-    };
-    apply();
-    if (choice === 'system') {
-      media.addEventListener('change', apply);
-      return () => media.removeEventListener('change', apply);
-    }
-  }, [choice]);
+    document.documentElement.classList.toggle('dark', dark);
+  }, [dark]);
 }
 
 function UpdatePrompt() {
