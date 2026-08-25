@@ -117,14 +117,16 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Today />} />
-          <Route path="workouts" element={<Workouts />} />
-          <Route path="workouts/:dayKey" element={<WorkoutSession />} />
-          <Route path="meals" element={<Meals />} />
-          <Route path="pre-workout" element={<PreWorkout />} />
-          <Route path="recovery" element={<Recovery />} />
-          <Route path="heat" element={<HeatSafety />} />
-          <Route path="cardio" element={<Cardio />} />
-          <Route path="sleep" element={<SleepStress />} />
+
+          <Route path="train" element={<Workouts />} />
+          <Route path="train/before" element={<PreWorkout />} />
+          <Route path="train/after" element={<Recovery />} />
+          <Route path="train/cardio" element={<Cardio />} />
+          <Route path="train/heat" element={<HeatSafety />} />
+          <Route path="train/session/:dayKey" element={<WorkoutSession />} />
+
+          <Route path="food" element={<Meals />} />
+
           <Route
             path="progress"
             element={
@@ -133,17 +135,13 @@ export default function App() {
               </Suspense>
             }
           />
-          <Route path="weekly-review" element={<WeeklyReviewPage />} />
-          <Route path="tutorials" element={<Tutorials />} />
-          <Route
-            path="transfer"
-            element={
-              <Suspense fallback={<Loading label="Opening transfer" />}>
-                <Transfer />
-              </Suspense>
-            }
-          />
-          <Route path="settings" element={<Settings />} />
+          <Route path="progress/sleep" element={<SleepStress />} />
+          <Route path="progress/review" element={<WeeklyReviewPage />} />
+
+          <Route path="more" element={<Tutorials />} />
+          <Route path="more/transfer" element={<Transfer />} />
+          <Route path="more/settings" element={<Settings />} />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>
