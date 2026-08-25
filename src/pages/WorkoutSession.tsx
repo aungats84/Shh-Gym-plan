@@ -5,6 +5,7 @@ import { useData } from '@/state/DataContext';
 import { usePlan } from '@/state/usePlan';
 import ReadinessCheck from '@/components/ReadinessCheck';
 import RestTimer from '@/components/RestTimer';
+import VideoLink from '@/components/VideoLink';
 import {
   Button,
   Card,
@@ -160,7 +161,7 @@ export default function WorkoutSession() {
     return (
       <div className="space-y-4">
         <SectionHeading sub={day.focus}>{day.name}</SectionHeading>
-        <ReadinessCheck onConfirm={handleReadiness} onCancel={() => navigate('/workouts')} />
+        <ReadinessCheck onConfirm={handleReadiness} onCancel={() => navigate('/train')} />
       </div>
     );
   }
@@ -202,15 +203,23 @@ export default function WorkoutSession() {
               planned?.per_side ? ' - each side' : ''
             }`}
             action={
-              <button
-                type="button"
-                onClick={() => setOpen(isOpen ? null : exerciseId)}
-                aria-expanded={isOpen}
-                className="flex h-11 w-11 items-center justify-center rounded-[8px] border border-border"
-                aria-label={isOpen ? 'Hide details' : 'Show details'}
-              >
-                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </button>
+              <div className="flex items-center gap-2">
+                <VideoLink
+                  exerciseId={exerciseId}
+                  exerciseName={ex.name}
+                  searchPhrase={ex.tutorial.search_phrase}
+                  compact
+                />
+                <button
+                  type="button"
+                  onClick={() => setOpen(isOpen ? null : exerciseId)}
+                  aria-expanded={isOpen}
+                  className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-line"
+                  aria-label={isOpen ? 'Hide details' : 'Show form tips'}
+                >
+                  {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+              </div>
             }
           >
             {planned?.note && <p className="mb-2 text-sm text-muted">{planned.note}</p>}
@@ -352,10 +361,11 @@ export default function WorkoutSession() {
                     ))}
                   </Select>
                 </Field>
-                <p className="text-xs text-muted">
-                  Tutorial: search YouTube for &quot;{ex.tutorial.search_phrase}&quot;. This site
-                  does not link a specific video because it has not checked one for you.
-                </p>
+                <VideoLink
+                  exerciseId={exerciseId}
+                  exerciseName={ex.name}
+                  searchPhrase={ex.tutorial.search_phrase}
+                />
               </div>
             )}
           </Card>
@@ -415,7 +425,7 @@ export default function WorkoutSession() {
           <Button full onClick={finish}>
             Save workout
           </Button>
-          <Button variant="secondary" onClick={() => navigate('/workouts')}>
+          <Button variant="secondary" onClick={() => navigate('/train')}>
             Cancel
           </Button>
         </div>

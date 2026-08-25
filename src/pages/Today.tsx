@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Droplets, Footprints, Moon, Plus, Minus } from 'lucide-react';
+import { Droplets, Footprints, Moon, Play, Sun, Check } from 'lucide-react';
 import { useData } from '@/state/DataContext';
 import { usePlan } from '@/state/usePlan';
-import { Button, Card, Notice, Pill, ProgressBar, SectionHeading, Stat } from '@/components/ui';
-import { bangkokHour, minusHours, prettyDate, timeAgo, weekStart } from '@/lib/time';
+import { Button, Card, Detail, Meter, Notice, Pill, Ring, Stepper } from '@/components/ui';
+import { bangkokHour, minusHours, prettyDate, weekStart } from '@/lib/time';
 import { WORKOUT_DAYS } from '@/data/program';
 import { mealsForDay, findOption } from '@/data/meals';
 import { totalsFor } from '@/domain/grocery';
@@ -15,10 +15,11 @@ export default function Today() {
   const data = useData();
   const plan = usePlan();
   const navigate = useNavigate();
-  const [savingLog, setSavingLog] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const today = plan.today;
   const profile = data.profile!;
+
   const log: DailyLog = data.daily_logs.find((l) => l.date === today) ?? {
     date: today,
     water_l: 0,
@@ -34,46 +35,41 @@ export default function Today() {
     notes: '',
   };
 
-  const wkStart = weekStart(today);
-  const completedThisWeek = sessionsInWeek(data.workouts, wkStart);
-  const doneKeys = new Set(completedThisWeek.map((s) => s.day_key));
+  const done = sessionsInWeek(data.workouts, weekStart(today));
+  const doneKeys = new Set(done.map((s) => s.day_key));
   const nextDay = WORKOUT_DAYS.find((d) => !doneKeys.has(d.key)) ?? WORKOUT_DAYS[0];
-  const alreadyToday = data.workouts.find((w) => w.date === today && w.status === 'completed');
+  const trainedToday = data.workouts.find((w) => w.date === today && w.status === 'completed');
 
-  const todaysSelections = data.meal_selections.filter((m) => m.date === today);
-  const totals = totalsFor(todaysSelections);
-  const dayNumber = (Math.abs(hashDate(today)) % 7) + 1;
-  const plannedMeals = mealsForDay(dayNumber);
+  const selections = data.meal_selections.filter((m) => m.date === today);
+  const totals = totalsFor(selections);
+  const dayNumber = (Math.abs(dayIndex(today)) % 7) + 1;
+  const planned = mealsForDay(dayNumber);
 
   const hour = bangkokHour();
+  const evening = hour >= 17;
   const caffeineCutoff = minusHours(profile.bedtime || '03:00', 8);
+  const proteinTarget = plan.targets?.protein_g ?? 100;
 
-  function updateLog(patch: Partial<DailyLog>) {
-    setSavingLog(true);
+  function update(patch: Partial<DailyLog>) {
+    setSaving(true);
     data.upsert('daily_logs', { ...log, ...patch });
-    window.setTimeout(() => setSavingLog(false), 300);
+    window.setTimeout(() => setSaving(false), 400);
   }
 
-  /* --------------- the three things that matter today ------------- */
-  const actions: { text: string; done: boolean }[] = [];
+  /* The three things that actually matter today. */
+  const tasks: { text: string; done: boolean }[] = [];
   if (!plan.parqDone) {
-    actions.push({
-      text: 'Complete the PAR-Q+ questionnaire and confirm it in Settings',
-      done: false,
-    });
-  } else if (!alreadyToday && completedThisWeek.length < profile.training_days_per_week) {
-    actions.push({ text: `Do ${nextDay.name} - ${nextDay.focus}`, done: false });
+    tasks.push({ text: 'Finish the health check to unlock workouts', done: false });
+  } else if (!trainedToday && done.length < profile.training_days_per_week) {
+    tasks.push({ text: `${nextDay.name} — ${nextDay.focus.toLowerCase()}`, done: false });
   }
-  actions.push({
-    text: `Hit ${plan.targets?.protein_g ?? 100} g of protein`,
-    done: totals.protein_g >= (plan.targets?.protein_g ?? 100) * 0.9,
+  tasks.push({
+    text: `Eat ${proteinTarget} g protein`,
+    done: totals.protein_g >= proteinTarget * 0.9,
   });
-  actions.push({
-    text: `Drink ${plan.waterGoal} litres of water`,
-    done: log.water_l >= plan.waterGoal,
-  });
-  if (actions.length < 3) {
-    actions.push({
+  tasks.push({ text: `Drink ${plan.waterGoal} L water`, done: log.water_l >= plan.waterGoal });
+  if (tasks.length < 3) {
+    tasks.push({
       text: `Walk ${plan.stepGoal.toLocaleString()} steps`,
       done: log.steps >= plan.stepGoal,
     });
@@ -81,176 +77,201 @@ export default function Today() {
 
   return (
     <div className="space-y-4">
-      <SectionHeading sub={prettyDate(today)}>
-        {profile.display_name ? `Hello, ${profile.display_name}` : 'Today'}
-      </SectionHeading>
+      {/* ---------------- greeting ---------------- */}
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <p className="text-[12px] font-medium text-faint">{prettyDate(today)}</p>
+          <h1 className="mt-0.5 font-display text-[26px] font-bold leading-tight">
+            {profile.display_name ? `Hi, ${profile.display_name}` : 'Today'}
+          </h1>
+        </div>
+        <Pill tone={done.length >= profile.training_days_per_week ? 'win' : 'accent'}>
+          Week {plan.week} · {done.length}/{profile.training_days_per_week}
+        </Pill>
+      </div>
 
-      {/* ------------------ under-fuelling warning ------------------ */}
+      {/* ---------------- under-fuelling: never hidden ---------------- */}
       {plan.energy.should_pause_deficit && (
-        <Notice tone="danger" title="Your calorie deficit has been paused">
-          <p>{plan.energy.message}</p>
-          <ul className="mt-2 list-disc pl-5">
-            {plan.energy.flags.map((f) => (
-              <li key={f.id}>
-                <strong>{f.label}:</strong> {f.detail}
-              </li>
-            ))}
-          </ul>
+        <Notice tone="alert" title="Eating target raised to maintenance">
+          <p>Several signs of under-eating showed up together, so the deficit is paused.</p>
+          <Detail label="What was noticed">
+            <ul className="list-disc space-y-1 pl-4">
+              {plan.energy.flags.map((f) => (
+                <li key={f.id}>
+                  <strong>{f.label}.</strong> {f.detail}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2">{plan.energy.message}</p>
+          </Detail>
         </Notice>
       )}
 
-      {/* ------------------ the three actions ----------------------- */}
+      {/* ---------------- the hero ---------------- */}
+      <Card>
+        <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
+          <Ring
+            value={totals.protein_g}
+            max={proteinTarget}
+            label="Protein today"
+            sub={`${totals.kcal} of ${plan.effectiveKcal} kcal`}
+          />
+
+          <div className="w-full flex-1">
+            {!plan.parqDone ? (
+              <>
+                <p className="text-[14px] font-semibold">Workouts are locked</p>
+                <p className="mt-1 text-[13px] text-muted">
+                  Two minutes of health screening first — it&apos;s the standard step before
+                  starting.
+                </p>
+                <div className="mt-3">
+                  <Link to="/more/settings" className="inline-flex">
+                    <Button size="md">Unlock workouts</Button>
+                  </Link>
+                </div>
+              </>
+            ) : trainedToday ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-win-wash">
+                    <Check className="h-4 w-4 text-win" aria-hidden />
+                  </span>
+                  <p className="text-[15px] font-semibold">Trained today</p>
+                </div>
+                <p className="mt-2 text-[13px] text-muted">
+                  Eat well tonight and get your sleep. That&apos;s the rest of the job.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="text-[12px] font-medium uppercase tracking-wide text-faint">
+                  Next session
+                </p>
+                <p className="mt-1 font-display text-[19px] font-bold">{nextDay.name}</p>
+                <p className="text-[13px] text-muted">{nextDay.focus}</p>
+                <div className="mt-3">
+                  <Button size="lg" full onClick={() => navigate(`/train/session/${nextDay.key}`)}>
+                    <Play className="h-4 w-4 fill-current" aria-hidden />
+                    Start workout
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3.5">
+          {WORKOUT_DAYS.map((d) => (
+            <Pill key={d.key} tone={doneKeys.has(d.key) ? 'win' : 'plain'}>
+              {doneKeys.has(d.key) && <Check className="h-3 w-3" aria-hidden />}
+              {d.name}
+            </Pill>
+          ))}
+        </div>
+      </Card>
+
+      {/* ---------------- three things ---------------- */}
       <Card title="Three things today">
-        <ul className="space-y-2">
-          {actions.slice(0, 3).map((a) => (
-            <li key={a.text} className="flex items-start gap-3 text-sm">
+        <ul className="space-y-2.5">
+          {tasks.slice(0, 3).map((t) => (
+            <li key={t.text} className="flex items-start gap-3">
               <span
                 aria-hidden
-                className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${
-                  a.done ? 'border-good bg-good text-white' : 'border-border'
+                className={`mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${
+                  t.done ? 'border-win bg-win text-white' : 'border-line'
                 }`}
               >
-                {a.done ? '✓' : ''}
+                {t.done && <Check className="h-3 w-3" strokeWidth={3} />}
               </span>
-              <span className={a.done ? 'text-muted line-through' : ''}>{a.text}</span>
+              <span className={`text-[14px] ${t.done ? 'text-faint line-through' : ''}`}>
+                {t.text}
+              </span>
             </li>
           ))}
         </ul>
       </Card>
 
-      {/* ------------------ today's training ------------------------ */}
-      <Card
-        title="Training"
-        subtitle={`${plan.weekPlan.label} - ${completedThisWeek.length} of ${profile.training_days_per_week} sessions done this week`}
-        action={
-          alreadyToday ? (
-            <Pill tone="good">Done today</Pill>
-          ) : (
-            <Button
-              size="sm"
-              disabled={!plan.parqDone}
-              onClick={() => navigate(`/workouts/${nextDay.key}`)}
-            >
-              Start workout
-            </Button>
-          )
-        }
-      >
-        {!plan.parqDone ? (
-          <Notice tone="warn">
-            Workouts unlock once you have completed the PAR-Q+ and confirmed it in Settings.
-          </Notice>
-        ) : alreadyToday ? (
-          <p className="text-sm text-muted">
-            You trained today. Rest, eat well, and come back tomorrow.
-          </p>
-        ) : (
-          <>
-            <p className="text-sm">
-              Next up: <strong>{nextDay.name}</strong> - {nextDay.focus}
-            </p>
-            <p className="mt-1 text-sm text-muted">{plan.weekPlan.focus}</p>
-          </>
-        )}
-
-        <div className="mt-3 flex flex-wrap gap-2">
-          {WORKOUT_DAYS.map((d) => (
-            <Pill key={d.key} tone={doneKeys.has(d.key) ? 'good' : 'plain'}>
-              {d.name}
-            </Pill>
-          ))}
+      {/* ---------------- quick log ---------------- */}
+      <Card title="Quick log" right={saving ? <Pill tone="win">Saved</Pill> : undefined}>
+        <div className="space-y-2.5">
+          <Stepper
+            Icon={Droplets}
+            label="Water"
+            value={log.water_l}
+            unit=" L"
+            goal={plan.waterGoal}
+            step={0.25}
+            onChange={(v) => update({ water_l: Math.max(0, Math.round(v * 100) / 100) })}
+          />
+          <Stepper
+            Icon={Footprints}
+            label="Steps"
+            value={log.steps}
+            unit=""
+            goal={plan.stepGoal}
+            step={500}
+            onChange={(v) => update({ steps: Math.max(0, v) })}
+          />
+          <Stepper
+            Icon={Moon}
+            label="Sleep"
+            value={log.sleep_hours ?? 0}
+            unit=" h"
+            goal={8}
+            step={0.5}
+            onChange={(v) => update({ sleep_hours: Math.max(0, Math.round(v * 2) / 2) })}
+          />
         </div>
-
-        {plan.cardio.runs > 0 && (
-          <p className="mt-3 text-sm text-muted">
-            Cardio this week: {plan.cardio.runs} run{plan.cardio.runs > 1 ? 's' : ''} of about{' '}
-            {plan.cardio.minutes} minutes. {plan.cardio.description}
-          </p>
-        )}
       </Card>
 
-      {/* ------------------ timing guidance ------------------------- */}
-      <Card title={hour < 17 ? 'Before training' : 'After training'}>
-        {hour < 17 ? (
-          <ul className="list-disc space-y-1 pl-5 text-sm">
-            <li>
-              Eat your first meal 3 to 4 hours before you train so you are not training empty.
-            </li>
-            <li>Drink water steadily through the afternoon rather than all at once.</li>
-            <li>
-              No caffeine after {caffeineCutoff} - it will still be in your system at bedtime.
-            </li>
-            <li>Warm up properly. It takes 5 minutes and changes how the session feels.</li>
-          </ul>
-        ) : (
-          <ul className="list-disc space-y-1 pl-5 text-sm">
-            <li>Eat your evening meal with protein and carbohydrate within a couple of hours.</li>
-            <li>Do the 5 minute cooldown before you sit down - it is on the Recovery page.</li>
-            <li>Replace what you sweated out. Water first, food second.</li>
-            <li>Give yourself an hour to wind down before bed.</li>
-          </ul>
-        )}
-      </Card>
-
-      {/* ------------------ nutrition ------------------------------- */}
+      {/* ---------------- food ---------------- */}
       <Card
-        title="Food today"
-        subtitle={`Budget ${profile.budget_thb_per_day} THB - spent about ${totals.cost_thb} THB`}
-        action={
-          <Link to="/meals" className="inline-flex">
+        title="Food"
+        right={
+          <Link to="/food" className="inline-flex">
             <Button size="sm" variant="secondary">
-              Log meal
+              Choose
             </Button>
           </Link>
         }
       >
-        <ProgressBar
-          label="Calories"
-          value={totals.kcal}
-          max={plan.effectiveKcal}
-          unit=" kcal"
-          tone={totals.kcal > plan.effectiveKcal * 1.15 ? 'warn' : 'accent'}
-        />
-        <ProgressBar
-          label="Protein"
-          value={totals.protein_g}
-          max={plan.targets?.protein_g ?? 100}
-          unit=" g"
-          tone="good"
-        />
-        <ProgressBar
-          label="Fibre"
-          value={totals.fiber_g}
-          max={plan.targets?.fiber_g ?? 25}
-          unit=" g"
+        <Meter label="Calories" value={totals.kcal} max={plan.effectiveKcal} unit="" />
+        <Meter label="Protein" value={totals.protein_g} max={proteinTarget} unit=" g" tone="win" />
+        <Meter
+          label="Spending"
+          value={totals.cost_thb}
+          max={profile.budget_thb_per_day}
+          unit=" ฿"
+          tone={totals.cost_thb > profile.budget_thb_per_day ? 'warm' : 'accent'}
         />
 
-        {todaysSelections.length === 0 ? (
-          <div className="mt-3 text-sm text-muted">
-            <p className="mb-1 font-medium text-text">Nothing chosen yet. Today&apos;s plan:</p>
-            <ul className="list-disc pl-5">
-              {plannedMeals.map((m) => {
-                const rec = m.options.find((o) => o.kind === m.recommended) ?? m.options[0];
-                return (
-                  <li key={m.id}>
-                    {m.title.split(' - ')[1]}: {rec.name} ({rec.kcal} kcal, {rec.protein_g} g
-                    protein, {rec.cost_thb} THB)
-                  </li>
-                );
-              })}
-            </ul>
+        {selections.length === 0 ? (
+          <div className="mt-3 space-y-2">
+            {planned.map((m) => {
+              const rec = m.options.find((o) => o.kind === m.recommended) ?? m.options[0];
+              return (
+                <div key={m.id} className="rounded-[12px] border border-line bg-surface-2 p-3">
+                  <p className="text-[11px] font-medium uppercase tracking-wide text-faint">
+                    {m.slot === 'meal_1' ? 'Afternoon' : 'Evening'}
+                  </p>
+                  <p className="mt-0.5 text-[14px] font-semibold">{rec.name}</p>
+                  <p className="mt-0.5 text-[12px] text-muted">
+                    {rec.kcal} kcal · {rec.protein_g} g protein · {rec.cost_thb} ฿
+                  </p>
+                </div>
+              );
+            })}
           </div>
         ) : (
-          <ul className="mt-3 space-y-1 text-sm">
-            {todaysSelections.map((s) => {
+          <ul className="mt-3 space-y-1.5">
+            {selections.map((s) => {
               const f = findOption(s.meal_id);
               return (
-                <li key={s.slot} className="flex items-baseline justify-between gap-2">
-                  <span className="truncate">
-                    {f?.option.name ?? s.custom_name ?? 'Custom meal'}
-                  </span>
-                  <span className="shrink-0 text-muted">
-                    {f ? `${f.option.kcal} kcal` : `${s.custom_kcal ?? 0} kcal`}
+                <li key={s.slot} className="flex items-baseline justify-between gap-2 text-[13px]">
+                  <span className="truncate">{f?.option.name ?? s.custom_name ?? 'Custom'}</span>
+                  <span className="shrink-0 tabular-nums text-faint">
+                    {f ? f.option.kcal : (s.custom_kcal ?? 0)} kcal
                   </span>
                 </li>
               );
@@ -259,138 +280,59 @@ export default function Today() {
         )}
       </Card>
 
-      {/* ------------------ quick logging --------------------------- */}
-      <Card title="Quick log" subtitle={savingLog ? 'Saving...' : 'Tap to record'}>
-        <div className="space-y-4">
-          <QuickCounter
-            Icon={Droplets}
-            label="Water"
-            value={log.water_l}
-            unit=" L"
-            goal={plan.waterGoal}
-            step={0.25}
-            onChange={(v) => updateLog({ water_l: Math.max(0, Math.round(v * 100) / 100) })}
-          />
-          <QuickCounter
-            Icon={Footprints}
-            label="Steps"
-            value={log.steps}
-            unit=""
-            goal={plan.stepGoal}
-            step={500}
-            onChange={(v) => updateLog({ steps: Math.max(0, v) })}
-          />
-          <QuickCounter
-            Icon={Moon}
-            label="Sleep"
-            value={log.sleep_hours ?? 0}
-            unit=" h"
-            goal={8}
-            step={0.5}
-            onChange={(v) => updateLog({ sleep_hours: Math.max(0, Math.round(v * 2) / 2) })}
-          />
-        </div>
+      {/* ---------------- timing ---------------- */}
+      <Card title={evening ? 'After you train' : 'Before you train'}>
+        <ul className="space-y-1.5 text-[13.5px]">
+          {evening ? (
+            <>
+              <li>Eat within a couple of hours — protein and rice.</li>
+              <li>Five-minute cooldown before you sit down.</li>
+              <li>Finish your water.</li>
+            </>
+          ) : (
+            <>
+              <li>First meal 3–4 hours before training.</li>
+              <li>No caffeine after {caffeineCutoff}.</li>
+              <li>Warm up for 5 minutes. It changes the whole session.</li>
+            </>
+          )}
+        </ul>
+        <Detail label={evening ? 'More on recovery' : 'More on timing'}>
+          {evening ? (
+            <p>
+              The 30-minute window is overstated — a proper meal within a couple of hours is what
+              matters. Sleep does more for recovery than anything else on this list.
+            </p>
+          ) : (
+            <p>
+              You eat twice a day and train in the evening, so meal timing does the work a snack
+              would normally do. Caffeine halves roughly every five hours, so an afternoon coffee is
+              still active at bedtime.
+            </p>
+          )}
+        </Detail>
       </Card>
 
-      {/* ------------------ heat reminder --------------------------- */}
+      {/* ---------------- heat ---------------- */}
       {profile.trains_outdoors && (
-        <Card title="Running outside?" tone="warn">
-          <p className="text-sm">
-            This site does not know the weather. Check your phone before you go, and enter the
-            conditions on the Heat safety page to get advice for tonight.
-          </p>
-          <p className="mt-2 text-sm">
-            In Bangkok, running after sunset is the single biggest safety improvement you can make.
-          </p>
-          <div className="mt-3">
-            <Link to="/heat" className="inline-flex">
-              <Button size="sm" variant="secondary">
-                Open heat safety
-              </Button>
-            </Link>
+        <Link to="/train/heat" className="block">
+          <div className="flex items-center gap-3 rounded-[14px] border border-warm/30 bg-warm-wash p-3.5">
+            <Sun className="h-5 w-5 shrink-0 text-warm" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="text-[13.5px] font-semibold">Running outside tonight?</p>
+              <p className="text-[12.5px] text-muted">
+                Check the heat first — after sunset is safest in Bangkok.
+              </p>
+            </div>
           </div>
-        </Card>
+        </Link>
       )}
-
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Week" value={plan.week} sub="of 9" />
-        <Stat
-          label="Sessions"
-          value={`${completedThisWeek.length}/${profile.training_days_per_week}`}
-          sub="this week"
-        />
-        <Stat label="Weight" value={`${profile.weight_kg} kg`} sub="starting" />
-        <Stat label="Saved" value={timeAgo(data.lastSavedAt)} />
-      </div>
     </div>
   );
 }
 
-function QuickCounter({
-  Icon,
-  label,
-  value,
-  unit,
-  goal,
-  step,
-  onChange,
-}: {
-  Icon: typeof Droplets;
-  label: string;
-  value: number;
-  unit: string;
-  goal: number;
-  step: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div>
-      <div className="mb-1.5 flex items-center gap-2 text-sm">
-        <Icon className="h-4 w-4 text-muted" aria-hidden />
-        <span className="font-medium">{label}</span>
-        <span className="ml-auto tabular-nums text-muted">
-          {value}
-          {unit} / {goal.toLocaleString()}
-          {unit}
-        </span>
-      </div>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label={`Decrease ${label}`}
-          onClick={() => onChange(value - step)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-border bg-surface"
-        >
-          <Minus className="h-4 w-4" aria-hidden />
-        </button>
-        <div
-          className="h-2 flex-1 overflow-hidden rounded-full bg-surface-2"
-          role="progressbar"
-          aria-valuenow={Math.min(100, Math.round((value / goal) * 100))}
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-label={`${label} progress`}
-        >
-          <div
-            className="h-full rounded-full bg-accent"
-            style={{ width: `${Math.min(100, (value / goal) * 100)}%` }}
-          />
-        </div>
-        <button
-          type="button"
-          aria-label={`Increase ${label}`}
-          onClick={() => onChange(value + step)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-border bg-surface"
-        >
-          <Plus className="h-4 w-4" aria-hidden />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/** Stable day-of-plan number so the meal rotation does not jump about. */
-function hashDate(iso: string): number {
+/** Stable day number so the meal rotation does not jump around. */
+function dayIndex(iso: string): number {
   const [y, m, d] = iso.split('-').map(Number);
   return Math.floor(Date.UTC(y, m - 1, d) / 86_400_000);
 }

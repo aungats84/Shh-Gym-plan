@@ -489,7 +489,7 @@ EVIDENCE BASE
           nothing is uploaded anywhere and nothing syncs on its own.
         </p>
         <div className="mt-3">
-          <Link to="/transfer" className="inline-flex">
+          <Link to="/more/transfer" className="inline-flex">
             <Button size="sm" variant="secondary">
               Move data to another device
             </Button>

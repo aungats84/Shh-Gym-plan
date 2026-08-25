@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ExternalLink, Search } from 'lucide-react';
-import { Card, Notice, Pill, SectionHeading, TextInput } from '@/components/ui';
+import { Card, Detail, Notice, PageTitle, Pill, SegTabs, TextInput } from '@/components/ui';
+import VideoLink from '@/components/VideoLink';
 import { EXERCISES, MUSCLE_LABELS, type MuscleGroup } from '@/data/exercises';
 import {
   COOLDOWN,
@@ -10,14 +11,16 @@ import {
   WORKOUT_DAYS,
 } from '@/data/program';
 import { EVIDENCE_LIMITS, SOURCES } from '@/data/sources';
+import { VERIFIED_ON, videoFor } from '@/data/tutorials';
 
-type GroupBy = 'day' | 'muscle';
+type View = 'moves' | 'warmup' | 'sources';
 
 export default function Tutorials() {
+  const [view, setView] = useState<View>('moves');
   const [query, setQuery] = useState('');
-  const [groupBy, setGroupBy] = useState<GroupBy>('day');
+  const [group, setGroup] = useState<'day' | 'muscle'>('day');
 
-  const filtered = EXERCISES.filter(
+  const matches = EXERCISES.filter(
     (e) =>
       query.trim() === '' ||
       e.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -25,241 +28,233 @@ export default function Tutorials() {
   );
 
   const byMuscle = new Map<MuscleGroup, typeof EXERCISES>();
-  for (const ex of filtered) {
-    for (const m of ex.primary) {
-      byMuscle.set(m, [...(byMuscle.get(m) ?? []), ex]);
-    }
+  for (const ex of matches) {
+    for (const m of ex.primary) byMuscle.set(m, [...(byMuscle.get(m) ?? []), ex]);
   }
+
+  const withVideo = EXERCISES.filter((e) => videoFor(e.id)).length;
 
   return (
     <div className="space-y-4">
-      <SectionHeading sub="Every exercise, how to warm up and stretch, and where the advice comes from.">
-        Tutorials and sources
-      </SectionHeading>
+      <PageTitle sub="Watch how every exercise is done, then check the evidence behind the plan.">
+        How to
+      </PageTitle>
 
-      <Notice tone="warn" title="About the video links">
-        This site does <strong>not</strong> link to specific YouTube videos, because nobody has
-        checked them and a link that has not been checked is a link that might be wrong, dead, or
-        teaching bad form. Instead every exercise gives you an <strong>exact search phrase</strong>.
-        Paste it into YouTube and pick a demonstration from a source you trust - a physiotherapist,
-        a qualified coach, or a recognised organisation.
-      </Notice>
+      <SegTabs
+        items={[
+          { key: 'moves', label: 'Exercises' },
+          { key: 'warmup', label: 'Warm-up' },
+          { key: 'sources', label: 'Evidence' },
+        ]}
+        active={view}
+        onPick={(k) => setView(k as View)}
+      />
 
-      <Card title="Find an exercise">
-        <div className="flex items-center gap-2">
-          <Search className="h-4 w-4 shrink-0 text-muted" aria-hidden />
-          <TextInput
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or muscle"
-            aria-label="Search exercises"
-          />
-        </div>
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setGroupBy('day')}
-            aria-pressed={groupBy === 'day'}
-            className={`min-h-[38px] rounded-[8px] border px-3 text-sm ${
-              groupBy === 'day' ? 'border-accent bg-accent-soft' : 'border-border'
-            }`}
-          >
-            By workout day
-          </button>
-          <button
-            type="button"
-            onClick={() => setGroupBy('muscle')}
-            aria-pressed={groupBy === 'muscle'}
-            className={`min-h-[38px] rounded-[8px] border px-3 text-sm ${
-              groupBy === 'muscle' ? 'border-accent bg-accent-soft' : 'border-border'
-            }`}
-          >
-            By muscle
-          </button>
-        </div>
-      </Card>
+      {view === 'moves' && (
+        <>
+          <div className="flex items-center gap-2 rounded-[12px] border border-line bg-surface px-3">
+            <Search className="h-4 w-4 shrink-0 text-faint" aria-hidden />
+            <TextInput
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search exercise or muscle"
+              aria-label="Search exercises"
+              className="border-0 bg-transparent px-0"
+            />
+          </div>
 
-      {groupBy === 'day'
-        ? WORKOUT_DAYS.map((day) => {
-            const items = day.main
-              .map((m) => EXERCISES.find((e) => e.id === m.exercise_id))
-              .filter((e): e is (typeof EXERCISES)[number] => Boolean(e) && filtered.includes(e!));
-            if (items.length === 0) return null;
-            return (
-              <Card key={day.key} title={day.name} subtitle={day.focus}>
-                <ExerciseList items={items} />
-              </Card>
-            );
-          })
-        : [...byMuscle.entries()]
-            .sort((a, b) => MUSCLE_LABELS[a[0]].localeCompare(MUSCLE_LABELS[b[0]]))
-            .map(([muscle, items]) => (
-              <Card key={muscle} title={MUSCLE_LABELS[muscle]}>
-                <ExerciseList items={items} />
-              </Card>
-            ))}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex gap-1.5">
+              {(['day', 'muscle'] as const).map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGroup(g)}
+                  aria-pressed={group === g}
+                  className={`min-h-[36px] rounded-full border px-3 text-[12.5px] font-semibold ${
+                    group === g
+                      ? 'border-accent bg-accent-wash text-accent'
+                      : 'border-line text-muted'
+                  }`}
+                >
+                  {g === 'day' ? 'By workout' : 'By muscle'}
+                </button>
+              ))}
+            </div>
+            <Pill tone="win">{withVideo} videos</Pill>
+          </div>
 
-      <Card title="Warm-up and mobility">
-        <h3 className="mb-1 text-sm font-semibold">General warm-up</h3>
-        <ul className="mb-3 space-y-1 text-sm">
-          {GENERAL_WARMUP.map((s) => (
-            <li key={s.name}>
-              <strong>{s.name}</strong> ({s.duration}) - {s.detail}
-            </li>
-          ))}
-        </ul>
-        <h3 className="mb-1 text-sm font-semibold">Lower body days</h3>
-        <ul className="mb-3 space-y-1 text-sm">
-          {LOWER_MOBILITY.map((s) => (
-            <li key={s.name}>
-              <strong>{s.name}</strong> - {s.detail}
-            </li>
-          ))}
-        </ul>
-        <h3 className="mb-1 text-sm font-semibold">Upper body days</h3>
-        <ul className="space-y-1 text-sm">
-          {UPPER_MOBILITY.map((s) => (
-            <li key={s.name}>
-              <strong>{s.name}</strong> - {s.detail}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-xs text-muted">
-          Search phrase for any of these: &quot;dynamic warm up before workout beginner&quot;.
-        </p>
-      </Card>
+          {group === 'day'
+            ? WORKOUT_DAYS.map((day) => {
+                const items = day.main
+                  .map((m) => EXERCISES.find((e) => e.id === m.exercise_id))
+                  .filter(
+                    (e): e is (typeof EXERCISES)[number] => Boolean(e) && matches.includes(e!),
+                  );
+                if (!items.length) return null;
+                return (
+                  <Card key={day.key} title={day.name} eyebrow={day.focus}>
+                    <MoveList items={items} />
+                  </Card>
+                );
+              })
+            : [...byMuscle.entries()]
+                .sort((a, b) => MUSCLE_LABELS[a[0]].localeCompare(MUSCLE_LABELS[b[0]]))
+                .map(([muscle, items]) => (
+                  <Card key={muscle} title={MUSCLE_LABELS[muscle]}>
+                    <MoveList items={items} />
+                  </Card>
+                ))}
 
-      <Card title="Stretching and cooldown">
-        <ul className="space-y-1 text-sm">
-          {COOLDOWN.map((s) => (
-            <li key={s.name}>
-              <strong>{s.name}</strong> ({s.hold}) - {s.detail}
-            </li>
-          ))}
-        </ul>
-        <p className="mt-3 text-xs text-muted">
-          Search phrase: &quot;static stretching routine after workout 5 minutes&quot;.
-        </p>
-      </Card>
+          <p className="px-1 text-[12px] text-faint">
+            Every video was checked on {VERIFIED_ON} to confirm it exists and matches the exercise.
+            If one is later removed, a YouTube search opens instead of a dead link.
+          </p>
+        </>
+      )}
 
-      <Card
-        title="Sources"
-        subtitle={`Every link below was opened and checked on ${SOURCES[0].reviewed}.`}
-      >
-        <ul className="space-y-3">
+      {view === 'warmup' && (
+        <>
+          <Card title="Every session starts here" eyebrow="5 minutes">
+            <ol className="space-y-2 text-[13.5px]">
+              {GENERAL_WARMUP.map((s, i) => (
+                <li key={s.name} className="flex gap-3">
+                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent-wash text-[11px] font-bold text-accent">
+                    {i + 1}
+                  </span>
+                  <span>
+                    <strong>{s.name}</strong> <span className="text-faint">({s.duration})</span>
+                    <br />
+                    <span className="text-muted">{s.detail}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </Card>
+
+          <Card title="Leg days" eyebrow="Then add">
+            <ul className="space-y-1.5 text-[13.5px]">
+              {LOWER_MOBILITY.map((s) => (
+                <li key={s.name}>
+                  <strong>{s.name}</strong> — <span className="text-muted">{s.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card title="Upper body days" eyebrow="Then add">
+            <ul className="space-y-1.5 text-[13.5px]">
+              {UPPER_MOBILITY.map((s) => (
+                <li key={s.name}>
+                  <strong>{s.name}</strong> — <span className="text-muted">{s.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card title="Cooldown" eyebrow="After every session">
+            <ul className="space-y-1.5 text-[13.5px]">
+              {COOLDOWN.map((s) => (
+                <li key={s.name}>
+                  <strong>{s.name}</strong> <span className="text-faint">({s.hold})</span>
+                  <br />
+                  <span className="text-muted">{s.detail}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        </>
+      )}
+
+      {view === 'sources' && (
+        <>
+          <Notice tone="info" title="Where this plan comes from">
+            Seven sources, each opened and checked on 24 August 2026.
+          </Notice>
+
           {SOURCES.map((s) => (
-            <li key={s.id} className="rounded-[8px] border border-border p-3 text-sm">
+            <Card key={s.id} title={s.title} eyebrow={s.organisation}>
+              <p className="text-[12.5px] text-faint">
+                {s.published} · checked {s.reviewed}
+              </p>
+              <Detail label="What it's used for">
+                <ul className="list-disc space-y-1 pl-4">
+                  {s.used_for.map((u) => (
+                    <li key={u}>{u}</li>
+                  ))}
+                </ul>
+              </Detail>
               <a
                 href={s.url}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-start gap-1.5 font-medium underline"
+                className="mt-1 inline-flex min-h-[40px] items-center gap-1.5 text-[13px] font-semibold text-accent"
               >
-                {s.title}
-                <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
+                Open source
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden />
               </a>
-              <p className="mt-0.5 text-muted">{s.organisation}</p>
-              <p className="mt-0.5 text-xs text-muted">
-                Published: {s.published} &middot; Last checked by this site: {s.reviewed}
-              </p>
-              <p className="mt-1.5 text-xs font-medium">Used for:</p>
-              <ul className="list-disc pl-5 text-xs text-muted">
-                {s.used_for.map((u) => (
-                  <li key={u}>{u}</li>
-                ))}
-              </ul>
-            </li>
+            </Card>
           ))}
-        </ul>
-      </Card>
 
-      <Card title="What this site cannot do" tone="warn">
-        <ul className="list-disc space-y-1 pl-5 text-sm">
-          {EVIDENCE_LIMITS.map((l) => (
-            <li key={l}>{l}</li>
-          ))}
-        </ul>
-      </Card>
+          <Card title="What this app can't do" tone="warm">
+            <ul className="list-disc space-y-1.5 pl-4 text-[13px]">
+              {EVIDENCE_LIMITS.map((l) => (
+                <li key={l}>{l}</li>
+              ))}
+            </ul>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
 
-function ExerciseList({ items }: { items: typeof EXERCISES }) {
+function MoveList({ items }: { items: typeof EXERCISES }) {
   return (
-    <ul className="space-y-2">
+    <ul className="space-y-3">
       {items.map((ex) => (
-        <li key={ex.id}>
-          <details className="rounded-[8px] border border-border p-3">
-            <summary className="cursor-pointer text-sm font-medium">
-              {ex.name}
-              <span className="ml-2 font-normal text-muted">
-                {ex.primary.map((m) => MUSCLE_LABELS[m]).join(', ')}
-              </span>
-            </summary>
+        <li key={ex.id} className="rounded-[14px] border border-line p-3">
+          <div className="mb-2.5">
+            <p className="text-[14px] font-semibold">{ex.name}</p>
+            <p className="text-[12px] text-faint">
+              {ex.primary.map((m) => MUSCLE_LABELS[m]).join(' · ')}
+            </p>
+          </div>
 
-            <div className="mt-2 space-y-2 text-sm">
-              <p>
-                <span className="font-medium">Also works:</span>{' '}
-                {ex.secondary.length
-                  ? ex.secondary.map((m) => MUSCLE_LABELS[m]).join(', ')
-                  : 'nothing much else'}
-              </p>
-              <div>
-                <p className="font-medium">Form cues</p>
-                <ul className="mt-0.5 list-disc pl-5">
-                  {ex.cues.map((c) => (
-                    <li key={c}>{c}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <p className="font-medium">Common mistakes</p>
-                <ul className="mt-0.5 list-disc pl-5">
-                  {ex.mistakes.map((c) => (
-                    <li key={c}>{c}</li>
-                  ))}
-                </ul>
-              </div>
-              <p>
-                <span className="font-medium">Breathing:</span> {ex.breathing}
-              </p>
-              <p>
-                <span className="font-medium">Safe starting weight:</span> {ex.starting_load}
-              </p>
-              <p>
-                <span className="font-medium">Equipment swaps:</span> {ex.substitutions.join('; ')}
-              </p>
-              <p>
-                <span className="font-medium">Easier:</span> {ex.easier}
-              </p>
-              <p>
-                <span className="font-medium">Harder:</span> {ex.harder}
-              </p>
+          <VideoLink
+            exerciseId={ex.id}
+            exerciseName={ex.name}
+            searchPhrase={ex.tutorial.search_phrase}
+          />
 
-              <div className="rounded-[8px] border border-border bg-surface-2 p-2">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Pill tone="warn">Tutorial not verified</Pill>
-                </div>
-                <p className="mt-1.5">
-                  Search YouTube for:{' '}
-                  <span className="font-medium">&quot;{ex.tutorial.search_phrase}&quot;</span>
-                </p>
-                <a
-                  className="mt-1 inline-flex items-center gap-1 text-xs underline"
-                  href={`https://www.youtube.com/results?search_query=${encodeURIComponent(ex.tutorial.search_phrase)}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open that search on YouTube
-                  <ExternalLink className="h-3 w-3" aria-hidden />
-                </a>
-                <p className="mt-1 text-xs text-muted">
-                  This opens a search, not a specific video. Nobody has checked an individual video
-                  for this exercise, so the site will not pretend one is recommended.
-                </p>
-              </div>
-            </div>
-          </details>
+          <div className="mt-2.5">
+            <Detail label="Form cues and mistakes">
+              <p className="mb-1 font-semibold text-text">Do this</p>
+              <ul className="mb-2.5 list-disc space-y-0.5 pl-4">
+                {ex.cues.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+              <p className="mb-1 font-semibold text-text">Avoid this</p>
+              <ul className="mb-2.5 list-disc space-y-0.5 pl-4">
+                {ex.mistakes.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+              <p className="mb-1">
+                <strong className="text-text">Breathing:</strong> {ex.breathing}
+              </p>
+              <p className="mb-1">
+                <strong className="text-text">Starting weight:</strong> {ex.starting_load}
+              </p>
+              <p className="mb-1">
+                <strong className="text-text">Easier:</strong> {ex.easier}
+              </p>
+              <p>
+                <strong className="text-text">Harder:</strong> {ex.harder}
+              </p>
+            </Detail>
+          </div>
         </li>
       ))}
     </ul>
