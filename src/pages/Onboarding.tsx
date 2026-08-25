@@ -51,7 +51,7 @@ const DEFAULTS: Omit<Profile, 'user_id'> = {
   parq_confirmed_at: null,
   parq_flagged_yes: false,
   doctor_restrictions: null,
-  theme: 'system',
+  theme: 'light',
   track_cycle: false,
 };
 

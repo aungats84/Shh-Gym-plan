@@ -392,13 +392,12 @@ EVIDENCE BASE
               onChange={(e) => set('waketime', e.target.value)}
             />
           </Field>
-          <Field label="Appearance" htmlFor="th">
+          <Field label="Appearance" hint="The same on every device." htmlFor="th">
             <Select
               id="th"
-              value={form.theme}
+              value={form.theme === 'dark' ? 'dark' : 'light'}
               onChange={(e) => set('theme', e.target.value as ThemeChoice)}
             >
-              <option value="system">Match my device</option>
               <option value="light">Light</option>
               <option value="dark">Dark</option>
             </Select>
