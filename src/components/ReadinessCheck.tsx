@@ -66,8 +66,8 @@ export default function ReadinessCheck({
                   onClick={() => onConfirm({ ...input }, a)}
                   className={`flex min-h-[48px] w-full items-center justify-between rounded-[8px] border px-3 text-left text-sm ${
                     a === result.recommended
-                      ? 'border-accent bg-accent-soft font-medium'
-                      : 'border-border bg-surface hover:bg-surface-2'
+                      ? 'border-accent bg-accent-wash font-medium'
+                      : 'border-line bg-surface hover:bg-surface-2'
                   }`}
                 >
                   <span>{ACTION_LABELS[a]}</span>
@@ -149,7 +149,7 @@ export default function ReadinessCheck({
           />
         </Field>
 
-        <div className="space-y-2 rounded-[8px] border border-border p-3">
+        <div className="space-y-2 rounded-[8px] border border-line p-3">
           <label className="flex min-h-[44px] cursor-pointer items-center gap-3 text-sm">
             <input
               type="checkbox"

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Play, Search } from 'lucide-react';
-import { searchUrl, thumbUrl, videoFor, watchUrl } from '@/data/tutorials';
+import { searchUrl, thumbUrl, videoFor, watchUrl, type VerifiedVideo } from '@/data/tutorials';
 
 /**
  * Tapping opens the video in the YouTube app on a phone, or the site on
@@ -12,13 +12,19 @@ export default function VideoLink({
   exerciseName,
   searchPhrase,
   compact = false,
+  video: explicit,
+  label,
 }: {
-  exerciseId: string;
+  /** Used to look up an exercise video. Ignored when `video` is passed. */
+  exerciseId?: string;
   exerciseName: string;
   searchPhrase: string;
   compact?: boolean;
+  /** Pass a video directly - used for the cooking videos. */
+  video?: VerifiedVideo | null;
+  label?: string;
 }) {
-  const video = videoFor(exerciseId);
+  const video = explicit ?? (exerciseId ? videoFor(exerciseId) : null);
   const [thumbBroken, setThumbBroken] = useState(false);
 
   // Only fall back to search when there is genuinely no video for this
@@ -47,7 +53,7 @@ export default function VideoLink({
         className="inline-flex min-h-[38px] items-center gap-2 rounded-full border border-accent/30 bg-accent-wash px-3 text-[12px] font-semibold text-accent"
       >
         <Play className="h-3 w-3 fill-current" aria-hidden />
-        Watch
+        {label ?? 'Watch'}
       </a>
     );
   }

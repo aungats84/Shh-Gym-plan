@@ -34,7 +34,7 @@ export default function RestTimer({ seconds }: { seconds: number }) {
   const pct = seconds > 0 ? ((seconds - remaining) / seconds) * 100 : 0;
 
   return (
-    <div className="rounded-[8px] border border-border bg-surface-2 p-3">
+    <div className="rounded-[8px] border border-line bg-surface-2 p-3">
       <div className="flex items-center gap-3">
         <span className="tabular-nums text-lg font-semibold" aria-live="polite">
           {mins}:{String(secs).padStart(2, '0')}
@@ -46,7 +46,7 @@ export default function RestTimer({ seconds }: { seconds: number }) {
           type="button"
           onClick={() => setRunning((r) => !r)}
           aria-label={running ? 'Pause rest timer' : 'Start rest timer'}
-          className="flex h-11 w-11 items-center justify-center rounded-[8px] border border-border bg-surface"
+          className="flex h-11 w-11 items-center justify-center rounded-[8px] border border-line bg-surface"
         >
           {running ? (
             <Pause className="h-4 w-4" aria-hidden />
@@ -61,7 +61,7 @@ export default function RestTimer({ seconds }: { seconds: number }) {
             setRunning(false);
           }}
           aria-label="Reset rest timer"
-          className="flex h-11 w-11 items-center justify-center rounded-[8px] border border-border bg-surface"
+          className="flex h-11 w-11 items-center justify-center rounded-[8px] border border-line bg-surface"
         >
           <RotateCcw className="h-4 w-4" aria-hidden />
         </button>
