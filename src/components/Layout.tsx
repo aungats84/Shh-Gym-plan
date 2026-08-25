@@ -1,167 +1,167 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
-import {
-  Home,
-  Dumbbell,
-  UtensilsCrossed,
-  Timer,
-  HeartPulse,
-  Sun,
-  Footprints,
-  Moon,
-  TrendingUp,
-  ClipboardCheck,
-  BookOpen,
-  Settings as SettingsIcon,
-  Smartphone,
-  HardDriveDownload,
-  AlertCircle,
-} from 'lucide-react';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { HardDriveDownload, ShieldAlert } from 'lucide-react';
 import { useData } from '@/state/DataContext';
 import { timeAgo } from '@/lib/time';
+import { SECTIONS, sectionFor } from '@/components/nav';
+import { SegTabs } from '@/components/ui';
 
-interface NavItem {
-  to: string;
-  label: string;
-  short: string;
-  Icon: typeof Home;
-  /** Shown in the phone bottom bar. */
-  primary?: boolean;
-}
-
-export const NAV: NavItem[] = [
-  { to: '/', label: 'Today', short: 'Today', Icon: Home, primary: true },
-  { to: '/workouts', label: 'Workouts', short: 'Train', Icon: Dumbbell, primary: true },
-  {
-    to: '/meals',
-    label: 'Meals and cooking',
-    short: 'Meals',
-    Icon: UtensilsCrossed,
-    primary: true,
-  },
-  { to: '/progress', label: 'Progress', short: 'Progress', Icon: TrendingUp, primary: true },
-  { to: '/pre-workout', label: 'Pre-workout', short: 'Pre', Icon: Timer },
-  { to: '/recovery', label: 'Recovery', short: 'Recovery', Icon: HeartPulse },
-  { to: '/heat', label: 'Heat safety', short: 'Heat', Icon: Sun },
-  { to: '/cardio', label: 'Cardio and movement', short: 'Cardio', Icon: Footprints },
-  { to: '/sleep', label: 'Sleep and stress', short: 'Sleep', Icon: Moon },
-  { to: '/weekly-review', label: 'Weekly review', short: 'Review', Icon: ClipboardCheck },
-  { to: '/tutorials', label: 'Tutorials and sources', short: 'Learn', Icon: BookOpen },
-  { to: '/transfer', label: 'Transfer between devices', short: 'Transfer', Icon: Smartphone },
-  { to: '/settings', label: 'Settings', short: 'Settings', Icon: SettingsIcon, primary: true },
-];
-
-function SaveBadge() {
+function SaveBadge({ compact = false }: { compact?: boolean }) {
   const { saveState, lastSavedAt } = useData();
 
-  const map = {
-    saved: {
-      Icon: HardDriveDownload,
-      text: `Saved on this device ${timeAgo(lastSavedAt)}`,
-      cls: 'text-muted',
-    },
-    saving: { Icon: HardDriveDownload, text: 'Saving...', cls: 'text-accent' },
-    unavailable: { Icon: AlertCircle, text: 'This browser will not save', cls: 'text-danger' },
-  }[saveState];
-  const { Icon } = map;
+  if (saveState === 'unavailable') {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-alert/30 bg-alert-wash px-2.5 py-1 text-[11px] font-semibold text-alert">
+        <ShieldAlert className="h-3 w-3" aria-hidden />
+        Not saving
+      </span>
+    );
+  }
 
   return (
-    <Link
-      to="/transfer"
-      className={`flex min-h-[38px] w-full items-center gap-2 rounded-[8px] border border-border px-2 py-1 text-left text-xs ${map.cls}`}
-      title="Your data lives on this device. Tap to move it to another one."
-    >
-      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-      <span className="min-w-0 flex-1 truncate">{map.text}</span>
-    </Link>
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-2.5 py-1 text-[11px] font-medium text-faint">
+      <HardDriveDownload className="h-3 w-3" aria-hidden />
+      {compact ? 'Saved' : `Saved ${timeAgo(lastSavedAt)}`}
+    </span>
   );
 }
 
 export default function Layout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const section = sectionFor(location.pathname);
+
+  // A session screen is a focused task, so the section tabs step aside.
+  const inSession = location.pathname.includes('/session/');
+  const showTabs = section.pages.length > 0 && !inSession;
+  const activeTab =
+    [...section.pages]
+      .sort((a, b) => b.path.length - a.path.length)
+      .find((p) => location.pathname.startsWith(p.path))?.path ?? section.pages[0]?.path;
+
   return (
     <div className="min-h-dvh">
-      {/* Skip link - keyboard users should not have to tab the whole menu. */}
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 focus:rounded-[8px] focus:bg-accent focus:px-3 focus:py-2 focus:text-accent-text"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-[10px] focus:bg-accent focus:px-3 focus:py-2 focus:text-on-accent"
       >
         Skip to content
       </a>
 
-      {/* ---------------- desktop sidebar ---------------- */}
-      <aside className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-border bg-surface p-3 lg:flex">
-        <div className="px-2 py-3">
-          <p className="text-base font-semibold">San Training</p>
-          <p className="text-xs text-muted">Bangkok time</p>
+      {/* ---------------- desktop rail ---------------- */}
+      <aside className="fixed inset-y-0 left-0 hidden w-[248px] flex-col border-r border-line bg-surface lg:flex">
+        <div className="px-5 pb-4 pt-6">
+          <p className="font-display text-[17px] font-bold">San Training</p>
+          <p className="mt-0.5 text-[11px] text-faint">Bangkok time</p>
         </div>
-        <nav className="flex-1 overflow-y-auto" aria-label="Main">
-          <ul>
-            {NAV.map(({ to, label, Icon }) => (
-              <li key={to}>
-                <NavLink
-                  to={to}
-                  end={to === '/'}
-                  className={({ isActive }) =>
-                    `mb-0.5 flex min-h-[44px] items-center gap-3 rounded-[8px] px-3 text-sm ${
-                      isActive
-                        ? 'bg-accent-soft font-medium text-accent'
-                        : 'text-text hover:bg-surface-2'
-                    }`
-                  }
-                >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="truncate">{label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
+
+        <nav className="flex-1 overflow-y-auto px-3" aria-label="Main">
+          {SECTIONS.map((s) => (
+            <div key={s.key} className="mb-1">
+              <NavLink
+                to={s.root}
+                end={s.root === '/'}
+                className={({ isActive }) =>
+                  `flex min-h-[44px] items-center gap-3 rounded-[12px] px-3 text-[14px] font-semibold transition-colors ${
+                    isActive || section.key === s.key
+                      ? 'bg-accent-wash text-accent'
+                      : 'text-muted hover:bg-surface-2'
+                  }`
+                }
+              >
+                <s.Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+                {s.label}
+              </NavLink>
+
+              {section.key === s.key && s.pages.length > 0 && (
+                <div className="ml-[26px] mt-0.5 border-l border-line pl-3">
+                  {s.pages.map((p) => (
+                    <NavLink
+                      key={p.path}
+                      to={p.path}
+                      end={p.path === s.root}
+                      className={({ isActive }) =>
+                        `flex min-h-[38px] items-center gap-2.5 rounded-[10px] px-2.5 text-[13px] ${
+                          isActive ? 'font-semibold text-text' : 'text-muted hover:text-text'
+                        }`
+                      }
+                    >
+                      <p.Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                      {p.label}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </nav>
-        <div className="pt-2">
+
+        <div className="px-5 py-4">
           <SaveBadge />
         </div>
       </aside>
 
-      {/* ---------------- main content ---------------- */}
-      <div className="lg:pl-60">
-        {/* Phone header */}
-        <header className="safe-top safe-x sticky top-0 z-20 border-b border-border bg-bg/95 px-4 py-2 backdrop-blur lg:hidden">
+      {/* ---------------- content ---------------- */}
+      <div className="lg:pl-[248px]">
+        <header className="safe-top safe-x sticky top-0 z-20 border-b border-line bg-bg/85 px-4 py-2.5 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-semibold">San Training</p>
-            <div className="w-40">
-              <SaveBadge />
-            </div>
+            <p className="font-display text-[15px] font-bold">
+              {section.key === 'today' ? 'San Training' : section.label}
+            </p>
+            <SaveBadge compact />
           </div>
         </header>
 
         <main
           id="main"
-          className="safe-x mx-auto w-full max-w-3xl px-4 pb-28 pt-4 lg:pb-10 lg:pt-6"
+          className="safe-x mx-auto w-full max-w-3xl px-4 pb-28 pt-4 lg:pb-12 lg:pt-8"
         >
-          <Outlet />
+          {showTabs && (
+            <SegTabs
+              items={section.pages.map((p) => ({ key: p.path, label: p.label }))}
+              active={activeTab ?? ''}
+              onPick={(key) => navigate(key)}
+            />
+          )}
+          <div key={location.pathname} className="animate-rise">
+            <Outlet />
+          </div>
         </main>
       </div>
 
-      {/* ---------------- phone bottom navigation ---------------- */}
+      {/* ---------------- phone bar ---------------- */}
       <nav
-        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-border bg-surface lg:hidden"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur-xl lg:hidden"
         aria-label="Main"
       >
         <ul className="flex">
-          {NAV.filter((n) => n.primary).map(({ to, short, Icon }) => (
-            <li key={to} className="flex-1">
-              <NavLink
-                to={to}
-                end={to === '/'}
-                className={({ isActive }) =>
-                  `flex min-h-[56px] flex-col items-center justify-center gap-0.5 px-1 py-1.5 text-[11px] ${
-                    isActive ? 'text-accent' : 'text-muted'
-                  }`
-                }
-              >
-                <Icon className="h-5 w-5" aria-hidden />
-                <span className="truncate">{short}</span>
-              </NavLink>
-            </li>
-          ))}
+          {SECTIONS.map((s) => {
+            const on = section.key === s.key;
+            return (
+              <li key={s.key} className="flex-1">
+                <NavLink
+                  to={s.root}
+                  end={s.root === '/'}
+                  className="flex min-h-[58px] flex-col items-center justify-center gap-1 px-1 pb-1 pt-1.5"
+                >
+                  <span
+                    className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
+                      on ? 'bg-accent-wash' : ''
+                    }`}
+                  >
+                    <s.Icon
+                      className={`h-[18px] w-[18px] ${on ? 'text-accent' : 'text-faint'}`}
+                      aria-hidden
+                    />
+                  </span>
+                  <span
+                    className={`text-[10.5px] ${on ? 'font-semibold text-accent' : 'text-faint'}`}
+                  >
+                    {s.label}
+                  </span>
+                </NavLink>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </div>
