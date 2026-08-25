@@ -188,3 +188,88 @@ export function thumbUrl(v: VerifiedVideo): string {
 export function searchUrl(phrase: string): string {
   return `https://www.youtube.com/results?search_query=${encodeURIComponent(phrase)}`;
 }
+
+/**
+ * Cooking videos for the home-cooked meals.
+ *
+ * Same rule as the exercise videos: every id below was confirmed against
+ * YouTube's oEmbed endpoint on 25 August 2026, and the title and channel
+ * are exactly what it returned.
+ */
+export const MEAL_VIDEOS: Record<string, VerifiedVideo> = {
+  d1_m1_home: {
+    video_id: 'YOD6blQNb6E',
+    title: 'Thai Basil Chicken Recipe | Krapow Gai | Pad Kra Pao Gai',
+    channel: 'Mudbrick Herb Cottage',
+  },
+  d1_m2_home: {
+    video_id: 'NvA-ZPpmpTo',
+    title: 'Thai Morning Glory Stir-Fry (Pad Pak Boong Fai Daeng)',
+    channel: 'GinAroy',
+  },
+  d2_m1_home: {
+    video_id: 'b1uDWq7H2Ho',
+    title: 'Thai Chicken Clear Soup • Nin is Cooking',
+    channel: 'Nin is Cooking',
+  },
+  d2_m2_home: {
+    video_id: 'okxFO02tq2U',
+    title: 'ปลาซาบะย่างซีอิ๊วแบบบ้านๆ | Grilled Mackerel with Sauce I อร่อยทำเองได้ที่บ้าน',
+    channel: 'Amaor Channel',
+  },
+  d3_m1_home: {
+    video_id: 'koCqoRkPyBc',
+    title: 'How to make a PROPER THAI MINCED PORK OMELETTE-KHAI JIEOW MOO SUP-ไข่เจียวหมูสับ',
+    channel: 'andrew likes to cook stuff',
+  },
+  d3_m2_home: {
+    video_id: 'CCYLR2wzLiE',
+    title:
+      'HOW to make Thai GREEN CURRY with CHICKEN - EASY Chicken Thai Green Curry Recipe  Gaeng Keow Wan gai',
+    channel: 'Backyard Chef',
+  },
+  d4_m1_home: {
+    video_id: '0G4M8ZjlW0w',
+    title: 'Thailand Stir Fry Chicken Vegetables - Thai Street Food',
+    channel: 'Phan Rodighiero',
+  },
+  d4_m2_home: {
+    video_id: 'enUMRDNJL44',
+    title: 'Stir Fried Cabbage With Pork | Thai Food | Pad Pakgad Khao | ผัดผักกาดขาวหมูสับ',
+    channel: 'Daily Dish',
+  },
+  d5_m1_home: {
+    video_id: 'MVzH6603LiE',
+    title: 'ข้าวหนักไก่กับไข่ 親子丼 (Oyako Don) ♦ Cooking with Yamamori #18',
+    channel: 'Cooking with Yamamori',
+  },
+  d5_m2_home: {
+    video_id: 'EDS9LqurYL8',
+    title: 'Thai Red Curry with Tofu - Vegan Vegetarian Recipe',
+    channel: 'Vegan International',
+  },
+  d6_m1_home: {
+    video_id: 'yCRUvp_JY8E',
+    title: 'Laab Gai - Spicy Chicken Salad Recipe - Hot Thai Kitchen!',
+    channel: "Pailin's Kitchen",
+  },
+  d6_m2_home: {
+    video_id: 'zC8ra20Wz68',
+    title: 'Steamed Fish w/ Ginger Soy Sauce ปลานึ่งซีอิ้ว - Hot Thai Kitchen',
+    channel: "Pailin's Kitchen",
+  },
+  d7_m1_home: {
+    video_id: 'pqzMSFXevJs',
+    title: 'Amazing Simple Thai Chicken Fried Rice - "Khao Pad Gai"',
+    channel: 'True Thai Kitchen',
+  },
+  d7_m2_home: {
+    video_id: 'ncTVz8vMVus',
+    title: 'Thai Tofu & Pork Soup – Comforting Gaeng Jued Tao Hoo Moo Sub | Easy Family Recipe',
+    channel: 'GinAroy',
+  },
+};
+
+export function mealVideoFor(optionId: string): VerifiedVideo | null {
+  return MEAL_VIDEOS[optionId] ?? null;
+}
