@@ -7,7 +7,6 @@ import {
   Timer,
   HeartPulse,
   Footprints,
-  Sun,
   Moon,
   ClipboardCheck,
   BookOpen,
@@ -56,7 +55,6 @@ export const SECTIONS: Section[] = [
       { path: '/train/before', label: 'Before', Icon: Timer },
       { path: '/train/after', label: 'After', Icon: HeartPulse },
       { path: '/train/cardio', label: 'Cardio', Icon: Footprints },
-      { path: '/train/heat', label: 'Heat', Icon: Sun },
     ],
   },
   {
@@ -71,11 +69,7 @@ export const SECTIONS: Section[] = [
     root: '/progress',
     label: 'Progress',
     Icon: TrendingUp,
-    pages: [
-      { path: '/progress', label: 'Numbers', Icon: TrendingUp },
-      { path: '/progress/sleep', label: 'Sleep', Icon: Moon },
-      { path: '/progress/review', label: 'Weekly', Icon: ClipboardCheck },
-    ],
+    pages: [],
   },
   {
     key: 'more',
@@ -83,7 +77,9 @@ export const SECTIONS: Section[] = [
     label: 'More',
     Icon: MoreHorizontal,
     pages: [
-      { path: '/more', label: 'How to', Icon: BookOpen },
+      { path: '/more/howto', label: 'How to', Icon: BookOpen },
+      { path: '/more/sleep', label: 'Sleep', Icon: Moon },
+      { path: '/more/weekly', label: 'Weekly', Icon: ClipboardCheck },
       { path: '/more/transfer', label: 'Transfer', Icon: Smartphone },
       { path: '/more/settings', label: 'Settings', Icon: SettingsIcon },
     ],

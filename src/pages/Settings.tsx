@@ -15,6 +15,14 @@ import {
 import { computeTargets } from '@/domain/nutrition';
 import { buildSampleData, sampleKeys, type SampleKey } from '@/data/sampleData';
 import { readCache, removeCache, writeCache } from '@/lib/storage';
+import {
+  SOUND_OPTIONS,
+  getTimerSound,
+  setTimerSound,
+  playAlarm,
+  primeAudio,
+  type SoundId,
+} from '@/lib/sounds';
 import { Link } from 'react-router-dom';
 import { prettyDate, timeAgo, todayISO } from '@/lib/time';
 import type { Profile, ThemeChoice } from '@/lib/types';
@@ -37,6 +45,7 @@ export default function Settings() {
     readCache<SampleKey[]>('sampleKeys', []),
   );
   const [sampleMsg, setSampleMsg] = useState<string | null>(null);
+  const [sound, setSound] = useState<SoundId>(() => getTimerSound());
 
   function set<K extends keyof Profile>(k: K, v: Profile[K]) {
     setForm((f) => ({ ...f, [k]: v }));
@@ -446,7 +455,7 @@ EVIDENCE BASE
           </span>
         </label>
 
-        <div className="rounded-[8px] border border-line bg-surface-2 p-3 text-sm">
+        <div className="rounded-[16px] border border-line bg-surface-2 p-3 text-sm">
           <p className="font-medium">With these settings your targets would be:</p>
           <p className="mt-1">
             {preview.target_kcal} kcal, {preview.protein_g} g protein, {preview.carbs_g} g carbs,{' '}
@@ -473,6 +482,41 @@ EVIDENCE BASE
           The site is built so a full Thai translation can be added later without changing any of
           the calculations.
         </p>
+      </Card>
+
+      <Card title="Rest timer sound" subtitle="Plays when a rest timer runs out.">
+        <Field label="Alarm" htmlFor="snd">
+          <Select
+            id="snd"
+            value={sound}
+            onChange={(e) => {
+              const v = e.target.value as SoundId;
+              setSound(v);
+              setTimerSound(v);
+              if (v !== 'off') {
+                primeAudio();
+                playAlarm(v);
+              }
+            }}
+          >
+            {SOUND_OPTIONS.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={sound === 'off'}
+          onClick={() => {
+            primeAudio();
+            playAlarm(sound);
+          }}
+        >
+          Preview sound
+        </Button>
       </Card>
 
       {/* -------------------- saving -------------------- */}

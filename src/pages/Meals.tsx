@@ -9,17 +9,12 @@ import {
   Notice,
   Pill,
   ProgressBar,
-  ScrollX,
   SectionHeading,
   TextInput,
 } from '@/components/ui';
 import {
-  BATCH_COOKING_NOTE,
   EXTRAS,
-  HOT_WEATHER_STORAGE,
-  MEALS,
   NUTRITION_NOTE,
-  PRICE_NOTE,
   PRICE_REVIEWED_ON,
   findOption,
   mealsForDay,
@@ -158,7 +153,7 @@ export default function Meals() {
                     type="button"
                     onClick={() => clearSlot(sel.slot)}
                     aria-label={`Remove ${name}`}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border border-line text-faint"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[14px] border border-line text-faint"
                   >
                     <X className="h-3.5 w-3.5" aria-hidden />
                   </button>
@@ -199,36 +194,49 @@ export default function Meals() {
             title={meal.title.split(' - ')[1]}
             subtitle="Three ways to do it. Pick whichever suits today."
           >
-            <div className="space-y-3">
+            {/* Mobile: a swipeable carousel, one option at a time with a peek of
+                the next. Desktop keeps the stacked list. */}
+            <div className="flex snap-x snap-mandatory items-start gap-3 overflow-x-auto pb-1 sm:flex-col sm:overflow-visible sm:pb-0 sm:snap-none">
               {ordered.map((o) => {
                 const isSelected = selected?.meal_id === o.id;
+                const isRec = o.kind === meal.recommended;
+                const timing =
+                  o.timing === 'before'
+                    ? 'Good before training'
+                    : o.timing === 'after'
+                      ? 'Good after training'
+                      : 'Good either side';
                 return (
                   <div
                     key={o.id}
-                    className={`rounded-[8px] border p-3 ${
-                      isSelected ? 'border-accent bg-accent-wash' : 'border-line'
+                    className={`w-[85%] shrink-0 snap-start overflow-hidden rounded-[14px] border p-4 sm:w-auto sm:shrink ${
+                      isSelected
+                        ? 'border-accent bg-accent-wash'
+                        : isRec
+                          ? 'border-accent/25 bg-surface shadow-[var(--shadow-lift)]'
+                          : 'border-line bg-surface-2/50'
                     }`}
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {isSelected && (
-                            <Pill tone="win">
-                              <Check className="h-3 w-3" aria-hidden />
-                              Chosen
-                            </Pill>
-                          )}
-                          <Pill tone={o.kind === meal.recommended ? 'accent' : 'plain'}>
-                            {KIND_LABEL[o.kind]}
+                    {/* header: the kind, the pick, the heart */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+                        <span className="label-caps text-[10px] text-muted">
+                          {KIND_LABEL[o.kind]}
+                        </span>
+                        {isRec && (
+                          <span className="label-caps rounded-full border border-accent/40 px-2 py-[3px] text-[9.5px] text-accent">
+                            Recommended
+                          </span>
+                        )}
+                        {isSelected && (
+                          <Pill tone="win">
+                            <Check className="h-3 w-3" aria-hidden />
+                            Chosen
                           </Pill>
-                          {o.kind === meal.recommended && <Pill tone="good">Recommended</Pill>}
-                          <Pill tone={o.confidence === 'low' ? 'warn' : 'plain'}>
-                            {o.confidence} confidence
-                          </Pill>
-                        </div>
-                        <p className="mt-1.5 font-medium">{o.name}</p>
-                        {o.thai_name && <p className="text-sm text-muted">{o.thai_name}</p>}
-                        <p className="mt-0.5 text-sm text-muted">{o.portion}</p>
+                        )}
+                        {o.confidence === 'low' && (
+                          <span className="label-caps text-[10px] text-warm">· low confidence</span>
+                        )}
                       </div>
                       <button
                         type="button"
@@ -237,37 +245,59 @@ export default function Meals() {
                           favourites.includes(o.id) ? 'Remove favourite' : 'Add favourite'
                         }
                         aria-pressed={favourites.includes(o.id)}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[8px] border border-line"
+                        className="-mt-1 -mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-bg"
                       >
                         <Heart
-                          className={`h-4 w-4 ${favourites.includes(o.id) ? 'fill-accent text-accent' : ''}`}
+                          className={`h-[18px] w-[18px] ${favourites.includes(o.id) ? 'fill-accent text-accent' : 'text-faint'}`}
                           aria-hidden
                         />
                       </button>
                     </div>
 
-                    <ScrollX>
-                      <div className="mt-2 flex gap-3 whitespace-nowrap text-xs text-muted">
-                        <span>{o.kcal} kcal</span>
-                        <span>{o.protein_g} g protein</span>
-                        <span>{o.carbs_g} g carbs</span>
-                        <span>{o.fat_g} g fat</span>
-                        <span>{o.fiber_g} g fibre</span>
-                        <span className="font-medium text-text">{o.cost_thb} THB</span>
-                        <span>{o.time_minutes} min</span>
-                        <span>
-                          {o.timing === 'before'
-                            ? 'Good before training'
-                            : o.timing === 'after'
-                              ? 'Good after training'
-                              : 'Either'}
-                        </span>
+                    {/* the dish, as a menu line */}
+                    <h3 className="mt-1.5 font-serif text-[20px] font-semibold leading-tight">
+                      {o.name}
+                    </h3>
+                    {o.thai_name && <p className="mt-0.5 text-[13px] text-muted">{o.thai_name}</p>}
+                    <p className="mt-0.5 text-[12.5px] text-faint">{o.portion}</p>
+
+                    {/* the three numbers that decide it, as a ledger */}
+                    <div className="mt-3 grid grid-cols-3 divide-x divide-line rounded-[14px] border border-line bg-bg/50 text-center">
+                      <div className="px-1 py-2">
+                        <p className="font-serif text-[19px] font-semibold leading-none tabular-nums">
+                          {o.kcal}
+                        </p>
+                        <p className="label-caps mt-1 text-[9px] text-faint">kcal</p>
                       </div>
-                    </ScrollX>
+                      <div className="px-1 py-2">
+                        <p className="font-serif text-[19px] font-semibold leading-none tabular-nums">
+                          {o.protein_g}
+                        </p>
+                        <p className="label-caps mt-1 text-[9px] text-faint">g protein</p>
+                      </div>
+                      <div className="px-1 py-2">
+                        <p className="font-serif text-[19px] font-semibold leading-none tabular-nums text-accent">
+                          {o.cost_thb}
+                        </p>
+                        <p className="label-caps mt-1 text-[9px] text-faint">THB</p>
+                      </div>
+                    </div>
+
+                    <p className="mt-2.5 flex flex-wrap gap-x-2.5 gap-y-1 text-[12px] text-muted">
+                      <span>{o.carbs_g} g carbs</span>
+                      <span>·</span>
+                      <span>{o.fat_g} g fat</span>
+                      <span>·</span>
+                      <span>{o.fiber_g} g fibre</span>
+                      <span>·</span>
+                      <span>{o.time_minutes} min</span>
+                      <span>·</span>
+                      <span>{timing}</span>
+                    </p>
 
                     {o.ingredients && (
-                      <details className="mt-2">
-                        <summary className="cursor-pointer text-sm font-medium">
+                      <details className="mt-2.5">
+                        <summary className="cursor-pointer text-[13px] font-semibold text-accent">
                           Ingredients
                         </summary>
                         <ul className="mt-1 space-y-0.5 text-sm">
@@ -284,7 +314,7 @@ export default function Meals() {
                     )}
 
                     <details className="mt-2">
-                      <summary className="cursor-pointer text-sm font-medium">
+                      <summary className="cursor-pointer text-[13px] font-semibold text-accent">
                         {o.kind === 'outside' ? 'How to order it' : 'How to make it'}
                       </summary>
                       <ol className="mt-1 list-decimal space-y-0.5 pl-5 text-sm">
@@ -428,7 +458,7 @@ export default function Meals() {
       >
         <ul className="space-y-2 text-sm">
           {EXTRAS.map((e) => (
-            <li key={e.id} className="rounded-[8px] border border-line p-2">
+            <li key={e.id} className="rounded-[16px] border border-line p-2">
               <p className="font-medium">{e.name}</p>
               <p className="text-muted">
                 {e.portion} - {e.kcal} kcal, {e.protein_g} g protein, {e.cost_thb} THB
@@ -439,21 +469,8 @@ export default function Meals() {
         </ul>
       </Card>
 
-      <Card title="Storing food in Bangkok heat" tone="warn">
-        <ul className="list-disc space-y-1 pl-5 text-sm">
-          {HOT_WEATHER_STORAGE.map((s) => (
-            <li key={s}>{s}</li>
-          ))}
-        </ul>
-      </Card>
-
       <Card title="About these numbers">
-        <p className="text-sm">{PRICE_NOTE}</p>
-        <p className="mt-2 text-sm">{NUTRITION_NOTE}</p>
-        <p className="mt-2 text-sm">{BATCH_COOKING_NOTE}</p>
-        <p className="mt-2 text-xs text-muted">
-          {MEALS.length} planned meals across seven days, each with three options.
-        </p>
+        <p className="text-sm leading-relaxed text-muted">{NUTRITION_NOTE}</p>
       </Card>
     </div>
   );

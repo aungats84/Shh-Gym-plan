@@ -1,5 +1,5 @@
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { HardDriveDownload, ShieldAlert } from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronLeft, HardDriveDownload, ShieldAlert } from 'lucide-react';
 import { useData } from '@/state/DataContext';
 import { timeAgo } from '@/lib/time';
 import { SECTIONS, sectionFor } from '@/components/nav';
@@ -32,7 +32,9 @@ export default function Layout() {
 
   // A session screen is a focused task, so the section tabs step aside.
   const inSession = location.pathname.includes('/session/');
-  const showTabs = section.pages.length > 0 && !inSession;
+  // "More" drills in iOS-style (a menu, then a single page) rather than tabs.
+  const inMoreSub = section.key === 'more' && location.pathname.startsWith('/more/');
+  const showTabs = section.pages.length > 0 && !inSession && section.key !== 'more';
   const activeTab =
     [...section.pages]
       .sort((a, b) => b.path.length - a.path.length)
@@ -42,69 +44,69 @@ export default function Layout() {
     <div className="min-h-dvh">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-[10px] focus:bg-accent focus:px-3 focus:py-2 focus:text-on-accent"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:rounded-[14px] focus:bg-accent focus:px-3 focus:py-2 focus:text-on-accent"
       >
         Skip to content
       </a>
 
-      {/* ---------------- desktop rail ---------------- */}
-      <aside className="fixed inset-y-0 left-0 hidden w-[248px] flex-col border-r border-line bg-surface lg:flex">
-        <div className="px-5 pb-4 pt-6">
-          <p className="font-display text-[17px] font-bold">San Training</p>
-          <p className="mt-0.5 text-[11px] text-faint">Bangkok time</p>
+      {/* ---------------- desktop rail: the dossier index ---------------- */}
+      <aside className="fixed inset-y-0 left-0 hidden w-[252px] flex-col border-r border-rule bg-surface/70 lg:flex">
+        <div className="border-b border-rule px-6 pb-5 pt-7">
+          <p className="font-serif text-[20px] font-semibold leading-none">San Training</p>
+          <p className="label-caps mt-2 text-[10px] text-faint">Bangkok · her book</p>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-3" aria-label="Main">
-          {SECTIONS.map((s) => (
-            <div key={s.key} className="mb-1">
-              <NavLink
-                to={s.root}
-                end={s.root === '/'}
-                className={({ isActive }) =>
-                  `flex min-h-[44px] items-center gap-3 rounded-[12px] px-3 text-[14px] font-semibold transition-colors ${
-                    isActive || section.key === s.key
-                      ? 'bg-accent-wash text-accent'
-                      : 'text-muted hover:bg-surface-2'
-                  }`
-                }
-              >
-                <s.Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
-                {s.label}
-              </NavLink>
+        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="Main">
+          {SECTIONS.map((s) => {
+            const on = section.key === s.key;
+            return (
+              <div key={s.key} className="mb-0.5">
+                <NavLink
+                  to={s.root}
+                  end={s.root === '/'}
+                  className={`ribbon flex min-h-[46px] items-center gap-3 rounded-[16px] px-3.5 text-[14px] font-semibold transition-colors ${
+                    on ? 'bg-accent-wash text-accent' : 'text-muted hover:bg-surface-2'
+                  }`}
+                >
+                  {on && <span aria-hidden className="ribbon-mark animate-ribbon" />}
+                  <s.Icon className="h-[18px] w-[18px] shrink-0" aria-hidden />
+                  {s.label}
+                </NavLink>
 
-              {section.key === s.key && s.pages.length > 0 && (
-                <div className="ml-[26px] mt-0.5 border-l border-line pl-3">
-                  {s.pages.map((p) => (
-                    <NavLink
-                      key={p.path}
-                      to={p.path}
-                      end={p.path === s.root}
-                      className={({ isActive }) =>
-                        `flex min-h-[38px] items-center gap-2.5 rounded-[10px] px-2.5 text-[13px] ${
-                          isActive ? 'font-semibold text-text' : 'text-muted hover:text-text'
-                        }`
-                      }
-                    >
-                      <p.Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
-                      {p.label}
-                    </NavLink>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
+                {on && s.pages.length > 0 && (
+                  <div className="ml-[28px] mt-1 border-l border-rule pl-3.5">
+                    {s.pages.map((p) => (
+                      <NavLink
+                        key={p.path}
+                        to={p.path}
+                        end={p.path === s.root}
+                        className={({ isActive }) =>
+                          `flex min-h-[36px] items-center gap-2.5 rounded-[16px] px-2.5 text-[13px] transition-colors ${
+                            isActive ? 'font-semibold text-text' : 'text-muted hover:text-text'
+                          }`
+                        }
+                      >
+                        <p.Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
+                        {p.label}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
-        <div className="px-5 py-4">
+        <div className="border-t border-rule px-6 py-4">
           <SaveBadge />
         </div>
       </aside>
 
       {/* ---------------- content ---------------- */}
-      <div className="lg:pl-[248px]">
-        <header className="safe-top safe-x sticky top-0 z-20 border-b border-line bg-bg/85 px-4 py-2.5 backdrop-blur-xl lg:hidden">
+      <div className="lg:pl-[252px]">
+        <header className="safe-top safe-x sticky top-0 z-20 border-b border-rule bg-bg/80 px-4 py-3 backdrop-blur-xl lg:hidden">
           <div className="flex items-center justify-between gap-3">
-            <p className="font-display text-[15px] font-bold">
+            <p className="font-serif text-[16px] font-semibold">
               {section.key === 'today' ? 'San Training' : section.label}
             </p>
             <SaveBadge compact />
@@ -113,7 +115,7 @@ export default function Layout() {
 
         <main
           id="main"
-          className="safe-x mx-auto w-full max-w-3xl px-4 pb-28 pt-4 lg:pb-12 lg:pt-8"
+          className="safe-x mx-auto w-full max-w-3xl px-4 pb-28 pt-5 lg:pb-14 lg:pt-10"
         >
           {showTabs && (
             <SegTabs
@@ -122,7 +124,16 @@ export default function Layout() {
               onPick={(key) => navigate(key)}
             />
           )}
-          <div key={location.pathname} className="animate-rise">
+          {inMoreSub && (
+            <Link
+              to="/more"
+              className="mb-4 inline-flex min-h-[40px] items-center gap-1 text-[15px] font-semibold text-accent"
+            >
+              <ChevronLeft className="h-5 w-5" aria-hidden />
+              More
+            </Link>
+          )}
+          <div key={location.pathname} className="rise-stagger">
             <Outlet />
           </div>
         </main>
@@ -130,7 +141,7 @@ export default function Layout() {
 
       {/* ---------------- phone bar ---------------- */}
       <nav
-        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 backdrop-blur-xl lg:hidden"
+        className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-surface/95 backdrop-blur-xl lg:hidden"
         aria-label="Main"
       >
         <ul className="flex">
@@ -141,18 +152,18 @@ export default function Layout() {
                 <NavLink
                   to={s.root}
                   end={s.root === '/'}
-                  className="flex min-h-[58px] flex-col items-center justify-center gap-1 px-1 pb-1 pt-1.5"
+                  className="relative flex min-h-[58px] flex-col items-center justify-center gap-1 px-1 pb-1 pt-2"
                 >
-                  <span
-                    className={`flex h-7 w-12 items-center justify-center rounded-full transition-colors ${
-                      on ? 'bg-accent-wash' : ''
-                    }`}
-                  >
-                    <s.Icon
-                      className={`h-[18px] w-[18px] ${on ? 'text-accent' : 'text-faint'}`}
+                  {on && (
+                    <span
                       aria-hidden
+                      className="absolute inset-x-6 top-0 h-[2.5px] rounded-full bg-accent-strong"
                     />
-                  </span>
+                  )}
+                  <s.Icon
+                    className={`h-[19px] w-[19px] transition-colors ${on ? 'text-accent' : 'text-faint'}`}
+                    aria-hidden
+                  />
                   <span
                     className={`text-[10.5px] ${on ? 'font-semibold text-accent' : 'text-faint'}`}
                   >

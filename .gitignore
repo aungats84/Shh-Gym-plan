@@ -12,3 +12,7 @@ design-screenshots
 
 # TypeScript build caches - regenerated on every build, never worth committing.
 *.tsbuildinfo
+
+# Impeccable tooling: keep config.json, ignore the transient cache/build state.
+.impeccable/build/
+.impeccable/hook.cache.json

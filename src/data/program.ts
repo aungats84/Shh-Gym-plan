@@ -1,8 +1,8 @@
 /**
  * The 9-week training plan.
  *
- * Shape: 4 sessions a week on flexible days (Lower A, Upper A, Lower B,
- * Upper B). Arms and glutes carry extra direct volume because they are
+ * Shape: 4 sessions a week on flexible days (Day 1 lower, Day 2 upper,
+ * Day 3 lower, Day 4 upper). Arms and glutes carry extra direct volume because they are
  * the stated priorities, but every major muscle group is trained twice
  * a week, which is the ACSM 2026 position stand's core recommendation.
  *
@@ -136,7 +136,7 @@ export const COOLDOWN: CooldownStretch[] = [
 export const WORKOUT_DAYS: WorkoutDay[] = [
   {
     key: 'lower_a',
-    name: 'Lower A',
+    name: 'Day 1',
     focus: 'Glutes and quads',
     main: [
       { exercise_id: 'goblet_squat', sets: 3, reps: '10-12', rest_seconds: 90, rir: 3 },
@@ -174,7 +174,7 @@ export const WORKOUT_DAYS: WorkoutDay[] = [
   },
   {
     key: 'upper_a',
-    name: 'Upper A',
+    name: 'Day 2',
     focus: 'Push and arms',
     main: [
       {
@@ -228,7 +228,7 @@ export const WORKOUT_DAYS: WorkoutDay[] = [
   },
   {
     key: 'lower_b',
-    name: 'Lower B',
+    name: 'Day 3',
     focus: 'Single leg and glutes',
     main: [
       {
@@ -288,7 +288,7 @@ export const WORKOUT_DAYS: WorkoutDay[] = [
   },
   {
     key: 'upper_b',
-    name: 'Upper B',
+    name: 'Day 4',
     focus: 'Pull and arms',
     main: [
       {

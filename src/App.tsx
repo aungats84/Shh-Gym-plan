@@ -12,10 +12,10 @@ import WorkoutSession from '@/pages/WorkoutSession';
 import Meals from '@/pages/Meals';
 import PreWorkout from '@/pages/PreWorkout';
 import Recovery from '@/pages/Recovery';
-import HeatSafety from '@/pages/HeatSafety';
 import Cardio from '@/pages/Cardio';
 import SleepStress from '@/pages/SleepStress';
 import WeeklyReviewPage from '@/pages/WeeklyReview';
+import More from '@/pages/More';
 import Tutorials from '@/pages/Tutorials';
 import Settings from '@/pages/Settings';
 
@@ -118,7 +118,6 @@ export default function App() {
           <Route path="train/before" element={<PreWorkout />} />
           <Route path="train/after" element={<Recovery />} />
           <Route path="train/cardio" element={<Cardio />} />
-          <Route path="train/heat" element={<HeatSafety />} />
           <Route path="train/session/:dayKey" element={<WorkoutSession />} />
 
           <Route path="food" element={<Meals />} />
@@ -131,10 +130,11 @@ export default function App() {
               </Suspense>
             }
           />
-          <Route path="progress/sleep" element={<SleepStress />} />
-          <Route path="progress/review" element={<WeeklyReviewPage />} />
 
-          <Route path="more" element={<Tutorials />} />
+          <Route path="more" element={<More />} />
+          <Route path="more/howto" element={<Tutorials />} />
+          <Route path="more/sleep" element={<SleepStress />} />
+          <Route path="more/weekly" element={<WeeklyReviewPage />} />
           <Route path="more/transfer" element={<Transfer />} />
           <Route path="more/settings" element={<Settings />} />
 

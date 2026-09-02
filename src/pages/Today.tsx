@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Droplets, Footprints, Moon, Play, Sun, Check } from 'lucide-react';
+import { Droplets, Flame, Footprints, Moon, Play, RotateCcw, Check } from 'lucide-react';
 import { useData } from '@/state/DataContext';
 import { usePlan } from '@/state/usePlan';
 import { Button, Card, Detail, Meter, Notice, Pill, Ring, Stepper } from '@/components/ui';
@@ -9,6 +9,7 @@ import { WORKOUT_DAYS } from '@/data/program';
 import { mealsForDay, findOption } from '@/data/meals';
 import { totalsFor } from '@/domain/grocery';
 import { sessionsInWeek } from '@/domain/progression';
+import { currentStreak } from '@/domain/streak';
 import type { DailyLog } from '@/lib/types';
 
 export default function Today() {
@@ -39,6 +40,13 @@ export default function Today() {
   const doneKeys = new Set(done.map((s) => s.day_key));
   const nextDay = WORKOUT_DAYS.find((d) => !doneKeys.has(d.key)) ?? WORKOUT_DAYS[0];
   const trainedToday = data.workouts.find((w) => w.date === today && w.status === 'completed');
+  const restToday = log.rest_day === true;
+  const streak = currentStreak({
+    today,
+    daily_logs: data.daily_logs,
+    workouts: data.workouts,
+    meal_selections: data.meal_selections,
+  });
 
   const selections = data.meal_selections.filter((m) => m.date === today);
   const totals = totalsFor(selections);
@@ -60,7 +68,7 @@ export default function Today() {
   const tasks: { text: string; done: boolean }[] = [];
   if (!plan.parqDone) {
     tasks.push({ text: 'Finish the health check to unlock workouts', done: false });
-  } else if (!trainedToday && done.length < profile.training_days_per_week) {
+  } else if (!trainedToday && !restToday && done.length < profile.training_days_per_week) {
     tasks.push({ text: `${nextDay.name} — ${nextDay.focus.toLowerCase()}`, done: false });
   }
   tasks.push({
@@ -77,12 +85,12 @@ export default function Today() {
 
   return (
     <div className="space-y-4">
-      {/* ---------------- greeting ---------------- */}
-      <div className="flex items-end justify-between gap-3">
-        <div>
-          <p className="text-[12px] font-medium text-faint">{prettyDate(today)}</p>
-          <h1 className="mt-0.5 font-display text-[26px] font-bold leading-tight">
-            {profile.display_name ? `Hi, ${profile.display_name}` : 'Today'}
+      {/* ---------------- day-page masthead ---------------- */}
+      <div className="mb-1 flex items-end justify-between gap-3 border-b border-rule pb-3.5">
+        <div className="min-w-0">
+          <p className="label-caps text-[10.5px] text-accent">{prettyDate(today)}</p>
+          <h1 className="mt-1.5 font-serif text-[30px] font-semibold leading-[1.02] sm:text-[36px]">
+            {profile.display_name ? `Hello, ${profile.display_name}` : 'Today'}
           </h1>
         </div>
         <Pill tone={done.length >= profile.training_days_per_week ? 'win' : 'accent'}>
@@ -107,53 +115,91 @@ export default function Today() {
         </Notice>
       )}
 
-      {/* ---------------- the hero ---------------- */}
+      {/* ---------------- the hero: one unmissable next thing ---------------- */}
       <Card>
-        <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center">
-          <Ring
-            value={totals.protein_g}
-            max={proteinTarget}
-            label="Protein today"
-            sub={`${totals.kcal} of ${plan.effectiveKcal} kcal`}
-          />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+          {/* the protein ring — desktop only, on the left */}
+          <div className="hidden shrink-0 justify-center sm:flex">
+            <Ring
+              value={totals.protein_g}
+              max={proteinTarget}
+              label="Protein today"
+              sub={`${totals.kcal} of ${plan.effectiveKcal} kcal`}
+              size={112}
+            />
+          </div>
 
-          <div className="w-full flex-1">
+          {/* the plate: monumental action */}
+          <div className="min-w-0 flex-1 sm:border-l sm:border-rule sm:pl-6">
             {!plan.parqDone ? (
               <>
-                <p className="text-[14px] font-semibold">Workouts are locked</p>
-                <p className="mt-1 text-[13px] text-muted">
-                  Two minutes of health screening first — it&apos;s the standard step before
+                <p className="label-caps text-[10.5px] text-warm">Locked</p>
+                <p className="mt-1.5 font-serif text-[26px] font-semibold leading-tight sm:text-[30px]">
+                  Health check first
+                </p>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
+                  Two minutes of screening before your first workout — the standard step before
                   starting.
                 </p>
-                <div className="mt-3">
+                <div className="mt-4">
                   <Link to="/more/settings" className="inline-flex">
-                    <Button size="md">Unlock workouts</Button>
+                    <Button size="lg">Unlock workouts</Button>
                   </Link>
                 </div>
               </>
             ) : trainedToday ? (
               <>
-                <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-win-wash">
-                    <Check className="h-4 w-4 text-win" aria-hidden />
-                  </span>
-                  <p className="text-[15px] font-semibold">Trained today</p>
-                </div>
-                <p className="mt-2 text-[13px] text-muted">
+                <p className="label-caps flex items-center gap-2 text-[10.5px] text-win">
+                  <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+                  Done today
+                </p>
+                <p className="mt-1.5 font-serif text-[26px] font-semibold leading-tight sm:text-[30px]">
+                  Trained today
+                </p>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
                   Eat well tonight and get your sleep. That&apos;s the rest of the job.
                 </p>
               </>
+            ) : restToday ? (
+              <>
+                <p className="label-caps flex items-center gap-2 text-[10.5px] text-win">
+                  <Moon className="h-3.5 w-3.5" aria-hidden />
+                  Rest day
+                </p>
+                <p className="mt-1.5 font-serif text-[26px] font-semibold leading-tight sm:text-[30px]">
+                  Resting today
+                </p>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
+                  Recovery is part of the plan — your streak keeps going. {nextDay.name} is ready
+                  whenever you are.
+                </p>
+                <div className="mt-4">
+                  <Button size="md" variant="secondary" onClick={() => update({ rest_day: false })}>
+                    <RotateCcw className="h-4 w-4" aria-hidden />
+                    Actually, I&apos;ll train
+                  </Button>
+                </div>
+              </>
             ) : (
               <>
-                <p className="text-[12px] font-medium uppercase tracking-wide text-faint">
-                  Next session
+                <p className="label-caps text-[10.5px] text-accent">Next session</p>
+                <p className="mt-1.5 font-serif text-[30px] font-semibold leading-[1.03] sm:text-[38px]">
+                  {nextDay.name}
                 </p>
-                <p className="mt-1 font-display text-[19px] font-bold">{nextDay.name}</p>
-                <p className="text-[13px] text-muted">{nextDay.focus}</p>
-                <div className="mt-3">
+                <p className="mt-1 text-[14px] text-muted">{nextDay.focus}</p>
+                <div className="mt-4 space-y-2">
                   <Button size="lg" full onClick={() => navigate(`/train/session/${nextDay.key}`)}>
                     <Play className="h-4 w-4 fill-current" aria-hidden />
                     Start workout
+                  </Button>
+                  <Button
+                    size="md"
+                    variant="secondary"
+                    full
+                    onClick={() => update({ rest_day: true })}
+                  >
+                    <Moon className="h-4 w-4" aria-hidden />
+                    Swap for rest day
                   </Button>
                 </div>
               </>
@@ -161,7 +207,22 @@ export default function Today() {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap gap-1.5 border-t border-line pt-3.5">
+        {/* protein today — compact strip on mobile, where the big ring would crowd */}
+        <div className="mt-4 border-t border-rule pt-4 sm:hidden">
+          <Meter
+            value={totals.protein_g}
+            max={proteinTarget}
+            label="Protein today"
+            unit=" g"
+            tone="accent"
+          />
+          <p className="-mt-1 text-[12px] text-faint">
+            {totals.kcal} of {plan.effectiveKcal} kcal
+          </p>
+        </div>
+
+        {/* the week, as ruled ticks */}
+        <div className="mt-5 flex flex-wrap gap-1.5 border-t border-rule pt-4">
           {WORKOUT_DAYS.map((d) => (
             <Pill key={d.key} tone={doneKeys.has(d.key) ? 'win' : 'plain'}>
               {doneKeys.has(d.key) && <Check className="h-3 w-3" aria-hidden />}
@@ -170,6 +231,41 @@ export default function Today() {
           ))}
         </div>
       </Card>
+
+      {/* ---------------- streak + consistency ---------------- */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-[16px] border border-accent/20 bg-accent-wash p-4">
+          <div className="label-caps flex items-center gap-1.5 text-[10px] text-accent">
+            <Flame className="h-3.5 w-3.5" aria-hidden />
+            Day streak
+          </div>
+          <p className="mt-2 font-serif text-[30px] font-semibold leading-none text-accent-2 tabular-nums">
+            {streak}
+          </p>
+          <p className="mt-1.5 text-[12px] text-muted">
+            {streak === 0
+              ? 'Log anything today to start'
+              : streak === 1
+                ? 'day in a row — keep it going'
+                : 'days in a row — keep it going'}
+          </p>
+        </div>
+        <div className="rounded-[16px] border border-win/25 bg-win-wash p-4">
+          <div className="label-caps flex items-center gap-1.5 text-[10px] text-win">
+            <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+            This week
+          </div>
+          <p className="mt-2 font-serif text-[30px] font-semibold leading-none tabular-nums text-[color:var(--color-win)]">
+            {done.length}
+            <span className="text-[18px] text-faint"> / {profile.training_days_per_week}</span>
+          </p>
+          <p className="mt-1.5 text-[12px] text-muted">
+            {done.length >= profile.training_days_per_week
+              ? 'week complete — well done'
+              : 'sessions done'}
+          </p>
+        </div>
+      </div>
 
       {/* ---------------- three things ---------------- */}
       <Card title="Three things today">
@@ -251,7 +347,7 @@ export default function Today() {
             {planned.map((m) => {
               const rec = m.options.find((o) => o.kind === m.recommended) ?? m.options[0];
               return (
-                <div key={m.id} className="rounded-[12px] border border-line bg-surface-2 p-3">
+                <div key={m.id} className="rounded-[16px] border border-line bg-surface-2 p-3">
                   <p className="text-[11px] font-medium uppercase tracking-wide text-faint">
                     {m.slot === 'meal_1' ? 'Afternoon' : 'Evening'}
                   </p>
@@ -312,21 +408,6 @@ export default function Today() {
           )}
         </Detail>
       </Card>
-
-      {/* ---------------- heat ---------------- */}
-      {profile.trains_outdoors && (
-        <Link to="/train/heat" className="block">
-          <div className="flex items-center gap-3 rounded-[14px] border border-warm/30 bg-warm-wash p-3.5">
-            <Sun className="h-5 w-5 shrink-0 text-warm" aria-hidden />
-            <div className="min-w-0 flex-1">
-              <p className="text-[13.5px] font-semibold">Running outside tonight?</p>
-              <p className="text-[12.5px] text-muted">
-                Check the heat first — after sunset is safest in Bangkok.
-              </p>
-            </div>
-          </div>
-        </Link>
-      )}
     </div>
   );
 }

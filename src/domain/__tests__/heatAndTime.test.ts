@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vitest';
-import { assessHeat, heatIndexC } from '@/domain/heat';
 import { cardioForWeek, CARDIO_PLAN } from '@/domain/cardio';
 import {
   addDays,
@@ -11,57 +10,6 @@ import {
   todayISO,
   weekStart,
 } from '@/lib/time';
-
-describe('heat advice', () => {
-  it('says so plainly when no conditions have been entered', () => {
-    const a = assessHeat({ temp_c: null, humidity_pct: null, entered_at: null });
-    expect(a.band).toBe('unknown');
-    expect(a.summary).toMatch(/does not connect to a weather service/i);
-  });
-
-  it('does not invent a heat index without both inputs', () => {
-    expect(
-      assessHeat({ temp_c: 33, humidity_pct: null, entered_at: null }).heat_index_c,
-    ).toBeNull();
-  });
-
-  it('rates a mild evening as comfortable', () => {
-    expect(assessHeat({ temp_c: 26, humidity_pct: 55, entered_at: 'x' }).band).toBe('ok');
-  });
-
-  it('escalates as it gets hotter and more humid', () => {
-    const bands = [
-      assessHeat({ temp_c: 30, humidity_pct: 60, entered_at: 'x' }).band,
-      assessHeat({ temp_c: 34, humidity_pct: 70, entered_at: 'x' }).band,
-      assessHeat({ temp_c: 38, humidity_pct: 80, entered_at: 'x' }).band,
-    ];
-    const order = ['ok', 'caution', 'high', 'extreme'];
-    expect(order.indexOf(bands[1])).toBeGreaterThanOrEqual(order.indexOf(bands[0]));
-    expect(order.indexOf(bands[2])).toBeGreaterThanOrEqual(order.indexOf(bands[1]));
-  });
-
-  it('tells you not to run outside in extreme conditions', () => {
-    const a = assessHeat({ temp_c: 40, humidity_pct: 85, entered_at: 'x' });
-    expect(a.band).toBe('extreme');
-    expect(a.label).toMatch(/do not run outside/i);
-  });
-
-  it('always gives at least one action', () => {
-    for (const t of [24, 30, 34, 40]) {
-      expect(
-        assessHeat({ temp_c: t, humidity_pct: 70, entered_at: 'x' }).actions.length,
-      ).toBeGreaterThan(0);
-    }
-  });
-
-  it('humidity raises the feels-like temperature', () => {
-    expect(heatIndexC(33, 85)).toBeGreaterThan(heatIndexC(33, 40));
-  });
-
-  it('returns the plain temperature when it is cool', () => {
-    expect(heatIndexC(20, 50)).toBe(20);
-  });
-});
 
 describe('cardio build-up', () => {
   it('starts with no running', () => {

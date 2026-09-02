@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "createdAt": "2026-09-01T08:43:11.815Z",
+        "reason": "incumbent brand-committed body font (San Training brand: Sora + Plus Jakarta Sans); distinctive display voice is Bodoni Moda"
+      }
+    ]
+  }
+}

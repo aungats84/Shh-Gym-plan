@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp } from 'lucide-react';
 import {
   Bar,
   BarChart,
@@ -30,8 +31,40 @@ import { addDays, prettyDate, todayISO, weekStart } from '@/lib/time';
 import { bmi } from '@/domain/nutrition';
 import { totalsFor } from '@/domain/grocery';
 import { sessionsInWeek } from '@/domain/progression';
+import { currentStreak } from '@/domain/streak';
 
 type Range = 30 | 90 | 365;
+
+/** A single motivational achievement tile for the progress summary. */
+function StatTile({
+  label,
+  big,
+  sub,
+  tone = 'plain',
+}: {
+  label: string;
+  big: ReactNode;
+  sub?: string;
+  tone?: 'plain' | 'win' | 'accent';
+}) {
+  const box = {
+    plain: 'bg-surface-2 border-line',
+    win: 'bg-win-wash border-win/25',
+    accent: 'bg-accent-wash border-accent/20',
+  }[tone];
+  const num = { plain: 'text-text', win: 'text-win', accent: 'text-accent-2' }[tone];
+  return (
+    <div className={`rounded-[16px] border p-3.5 ${box}`}>
+      <div className="label-caps text-[9.5px] text-faint">{label}</div>
+      <div
+        className={`mt-1.5 font-serif text-[24px] font-semibold leading-none tabular-nums ${num}`}
+      >
+        {big}
+      </div>
+      {sub && <div className="mt-1 text-[11px] text-faint">{sub}</div>}
+    </div>
+  );
+}
 
 export default function Progress() {
   const data = useData();
@@ -175,9 +208,116 @@ export default function Progress() {
   const latest = measurements.at(-1);
   const first = measurements.find((m) => m.weight_kg != null);
 
+  // All-time progress (ignores the selected range) for the motivational summary.
+  const allMeas = useMemo(
+    () => [...data.measurements].sort((a, b) => a.date.localeCompare(b.date)),
+    [data.measurements],
+  );
+  const firstW = allMeas.find((m) => m.weight_kg != null);
+  const lastW = [...allMeas].reverse().find((m) => m.weight_kg != null);
+  const firstWaist = allMeas.find((m) => m.waist_cm != null);
+  const lastWaist = [...allMeas].reverse().find((m) => m.waist_cm != null);
+  const weightDelta =
+    firstW && lastW && firstW.date !== lastW.date
+      ? Math.round((lastW.weight_kg! - firstW.weight_kg!) * 10) / 10
+      : null;
+  const waistDelta =
+    firstWaist && lastWaist && firstWaist.date !== lastWaist.date
+      ? Math.round((lastWaist.waist_cm! - firstWaist.waist_cm!) * 10) / 10
+      : null;
+  const sessionsDone = data.workouts.filter((w) => w.status === 'completed').length;
+  const streak = currentStreak({
+    today: todayISO(),
+    daily_logs: data.daily_logs,
+    workouts: data.workouts,
+    meal_selections: data.meal_selections,
+  });
+  const hasProgress = sessionsDone > 0 || weightDelta != null || waistDelta != null;
+
   return (
     <div className="space-y-4">
       <SectionHeading sub="Trends matter. A single weigh-in does not.">Progress</SectionHeading>
+
+      {/* ---------------- motivational summary: how far she's come ---------------- */}
+      <Card>
+        <p className="label-caps text-[10.5px] text-accent">Your progress so far</p>
+        <h2 className="mt-1.5 font-serif text-[23px] font-semibold leading-tight sm:text-[27px]">
+          {hasProgress ? 'Look how far you’ve come' : 'Your story starts here'}
+        </h2>
+        <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
+          {hasProgress
+            ? 'Every number below is something you actually did. Keep stacking them up.'
+            : 'Log a workout, or add your first weight and waist, and this fills up.'}
+        </p>
+        <div className="mt-4 grid grid-cols-2 gap-3">
+          <StatTile
+            label="Weight"
+            tone={weightDelta != null && weightDelta < 0 ? 'win' : 'plain'}
+            big={
+              weightDelta != null ? (
+                <span className="inline-flex items-center gap-1">
+                  {weightDelta < 0 ? (
+                    <ArrowDown className="h-5 w-5" aria-hidden />
+                  ) : (
+                    <ArrowUp className="h-5 w-5" aria-hidden />
+                  )}
+                  {Math.abs(weightDelta)} kg
+                </span>
+              ) : lastW?.weight_kg != null ? (
+                `${lastW.weight_kg} kg`
+              ) : (
+                '—'
+              )
+            }
+            sub={
+              weightDelta != null
+                ? `since ${prettyDate(firstW!.date)}`
+                : lastW?.weight_kg != null
+                  ? 'starting point'
+                  : 'add your weight'
+            }
+          />
+          <StatTile
+            label="Waist"
+            tone={waistDelta != null && waistDelta < 0 ? 'win' : 'plain'}
+            big={
+              waistDelta != null ? (
+                <span className="inline-flex items-center gap-1">
+                  {waistDelta < 0 ? (
+                    <ArrowDown className="h-5 w-5" aria-hidden />
+                  ) : (
+                    <ArrowUp className="h-5 w-5" aria-hidden />
+                  )}
+                  {Math.abs(waistDelta)} cm
+                </span>
+              ) : lastWaist?.waist_cm != null ? (
+                `${lastWaist.waist_cm} cm`
+              ) : (
+                '—'
+              )
+            }
+            sub={
+              waistDelta != null
+                ? `since ${prettyDate(firstWaist!.date)}`
+                : lastWaist?.waist_cm != null
+                  ? 'starting point'
+                  : 'add your waist'
+            }
+          />
+          <StatTile
+            label="Workouts done"
+            tone="accent"
+            big={sessionsDone}
+            sub={sessionsDone > 0 ? 'and counting' : 'start your first'}
+          />
+          <StatTile
+            label="Day streak"
+            tone={streak > 0 ? 'accent' : 'plain'}
+            big={streak}
+            sub={streak > 0 ? 'keep it alive' : 'log anything today'}
+          />
+        </div>
+      </Card>
 
       <Card title="Add today's numbers">
         <div className="grid gap-x-3 sm:grid-cols-2">

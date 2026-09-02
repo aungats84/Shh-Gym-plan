@@ -90,7 +90,23 @@ export interface DailyLog {
   caffeine_last_time: string | null;
   alcohol_units: number | null;
   daytime_sleepiness: boolean;
+  /** She chose to rest today instead of training. Keeps her streak alive. */
+  rest_day?: boolean;
   notes: string;
+  updated_at?: string;
+}
+
+export interface CardioSession {
+  id?: string;
+  user_id?: string;
+  /** YYYY-MM-DD in Bangkok time. */
+  date: string;
+  kind: 'walk' | 'run' | 'indoor' | 'other';
+  minutes: number;
+  effort: 'easy' | 'moderate' | 'hard';
+  note?: string;
+  /** Makes each session unique within a day. */
+  created_at: string;
   updated_at?: string;
 }
 

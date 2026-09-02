@@ -37,7 +37,7 @@ export default function Workouts() {
             <Link
               key={d.key}
               to={plan.parqDone ? `/train/session/${d.key}` : '/more/settings'}
-              className={`flex items-center gap-3 rounded-[16px] border p-4 shadow-[var(--shadow-soft)] transition-transform active:scale-[0.99] ${
+              className={`flex items-center gap-3 rounded-[16px] border p-4 shadow-[var(--shadow-soft)] transition-[transform,box-shadow,border-color] duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-[var(--shadow-lift)] active:scale-[0.99] ${
                 isDone ? 'border-win/30 bg-win-wash' : 'border-line bg-surface'
               }`}
             >
@@ -51,8 +51,8 @@ export default function Workouts() {
                 ) : isDone ? (
                   <Check className="h-4 w-4" strokeWidth={3} aria-hidden />
                 ) : (
-                  <span className="font-display text-[13px] font-bold">
-                    {d.name.replace(/[^AB]/g, '')}
+                  <span className="font-serif text-[16px] font-semibold">
+                    {d.name.replace(/\D/g, '')}
                   </span>
                 )}
               </span>
@@ -83,7 +83,7 @@ export default function Workouts() {
             {WEEK_PLAN.map((w) => (
               <li
                 key={w.week}
-                className={`rounded-[12px] border p-2.5 ${
+                className={`rounded-[16px] border p-2.5 ${
                   w.week === plan.week ? 'border-accent bg-accent-wash' : 'border-line'
                 }`}
               >
@@ -149,7 +149,7 @@ export default function Workouts() {
 
       <p className="px-1 text-center text-[12.5px] text-muted">
         Form videos for every exercise are under{' '}
-        <Link to="/more" className="font-semibold text-accent">
+        <Link to="/more/howto" className="font-semibold text-accent">
           More → How to
         </Link>
       </p>

@@ -52,7 +52,7 @@ export default function Tutorials() {
 
       {view === 'moves' && (
         <>
-          <div className="flex items-center gap-2 rounded-[12px] border border-line bg-surface px-3">
+          <div className="flex items-center gap-2 rounded-[16px] border border-line bg-surface px-3">
             <Search className="h-4 w-4 shrink-0 text-faint" aria-hidden />
             <TextInput
               value={query}

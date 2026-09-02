@@ -16,12 +16,12 @@
   /* non-text work it passes on: bars, rings and focus.                */
   /* ---------------------------------------------------------------- */
 
-  --color-bg: #fbf0ef;
-  --color-bg-deep: #f0e8e7;
+  --color-bg: #fdecf1;
+  --color-bg-deep: #f9e2e9;
   --color-surface: #ffffff;
   --color-surface-2: #fff4f7;
-  --color-line: #ded1d2;
-  --color-line-soft: #f0e8e7;
+  --color-line: #ecdcde;
+  --color-line-soft: #f5ebec;
 
   --color-text: #2a1c1f;
   --color-muted: #665358;
@@ -42,18 +42,29 @@
   --color-win: #56633f;
   --color-win-wash: #f0fae1;
 
-  --radius-xl: 20px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 10px;
+  --radius-xl: 26px;
+  --radius-lg: 20px;
+  --radius-md: 16px;
+  --radius-sm: 13px;
 
   --shadow-soft: 0 1px 2px rgb(42 28 31 / 0.05), 0 10px 30px -18px rgb(42 28 31 / 0.3);
   --shadow-lift: 0 2px 6px rgb(42 28 31 / 0.07), 0 22px 48px -28px rgb(42 28 31 / 0.42);
 
+  /* The dossier voice: a couture serif for day-page titles and headline
+     numbers. Sora stays for compact UI labels and tabular readouts. */
+  --font-serif: 'Bodoni Moda', 'Sora', ui-serif, Georgia, 'Times New Roman', serif;
   --font-display: Sora, ui-sans-serif, system-ui, sans-serif;
   --font-sans:
     'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Noto Sans Thai',
     sans-serif;
+
+  /* Warm hairline for ruled leaves - a touch deeper than the panel line so a
+     ruled edge reads as ink on paper, not as a UI divider. */
+  --color-rule: #e6d6d8;
+}
+
+.dark {
+  --color-rule: #4f3d42;
 }
 
 /* Dark: pink lifts off ink. Pink 400 for accents, never rose 600 -
@@ -100,7 +111,30 @@
     font-family: var(--font-sans);
     overflow-x: hidden;
     min-height: 100dvh;
+    caret-color: var(--color-accent);
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* A whisper of paper grain over the whole leaf. Fixed so it does not scroll
+     against the content; kept faint enough to read as tooth, not texture. */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.28;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  }
+  .dark body::before {
+    opacity: 0.6;
+    mix-blend-mode: screen;
+  }
+
+  /* App content rides above the paper grain. */
+  #root {
+    position: relative;
+    z-index: 1;
   }
 
   h1,
@@ -109,6 +143,13 @@
     font-family: var(--font-display);
     letter-spacing: -0.02em;
     text-wrap: balance;
+  }
+
+  /* Numbers are ledger entries: line them up. */
+  .tabular-nums,
+  th,
+  td {
+    font-variant-numeric: tabular-nums;
   }
 
   /* Long Thai dish names and URLs must never widen the page. */
@@ -120,6 +161,12 @@
   h2,
   h3 {
     overflow-wrap: break-word;
+  }
+
+  /* Better line breaks: no orphans, smoother rag. */
+  p,
+  li {
+    text-wrap: pretty;
   }
 
   :focus-visible {
@@ -149,11 +196,36 @@
     color: var(--color-on-accent);
   }
 
+  /* Scrollbar in the paper palette, not the browser default. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--color-faint) 40%, transparent);
+    border: 3px solid var(--color-bg);
+    border-radius: 999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: color-mix(in srgb, var(--color-faint) 60%, transparent);
+  }
+
+  /* Links carry the ink accent with an offset underline, never a raw browser one. */
+  a {
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
@@ -167,9 +239,11 @@
 @utility safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
+/* Always keep the 1rem gutter, and grow it for a notch when there is one.
+   (Bare env() here would win the cascade over px-4 and zero the gutter.) */
 @utility safe-x {
-  padding-left: env(safe-area-inset-left, 0px);
-  padding-right: env(safe-area-inset-right, 0px);
+  padding-left: max(1rem, env(safe-area-inset-left, 0px));
+  padding-right: max(1rem, env(safe-area-inset-right, 0px));
 }
 
 /* A very quiet sheen on raised surfaces - reads as depth, not decoration. */
@@ -212,4 +286,92 @@
 
 @utility animate-sweep {
   animation: sweep 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Apple-style materialize: on page entry the cards rise in a gentle, critically
+   damped stagger (no overshoot - the reveal carries no momentum). One authored
+   moment per navigation; the global reduced-motion rule collapses it to a plain
+   appearance. The page's own root is the direct child, its cards the grandchildren. */
+.rise-stagger > * > * {
+  animation: rise 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rise-stagger > * > *:nth-child(1) {
+  animation-delay: 30ms;
+}
+.rise-stagger > * > *:nth-child(2) {
+  animation-delay: 80ms;
+}
+.rise-stagger > * > *:nth-child(3) {
+  animation-delay: 130ms;
+}
+.rise-stagger > * > *:nth-child(4) {
+  animation-delay: 180ms;
+}
+.rise-stagger > * > *:nth-child(5) {
+  animation-delay: 225ms;
+}
+.rise-stagger > * > *:nth-child(6) {
+  animation-delay: 265ms;
+}
+.rise-stagger > * > *:nth-child(n + 7) {
+  animation-delay: 300ms;
+}
+
+/* ------------------------------------------------------------------ */
+/* Atelier Dossier - the bound-journal language.                       */
+/* ------------------------------------------------------------------ */
+
+/* The couture serif voice, for day-page titles and headline numbers only. */
+@utility font-serif {
+  font-family: var(--font-serif);
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
+}
+
+/* Small-caps ledger label. Size and colour come from the caller. */
+@utility label-caps {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-weight: 600;
+  font-feature-settings: 'tnum';
+}
+
+/* A ruled leaf: a fine top rule in ink, the way a page is ruled. */
+@utility rule-top {
+  border-top: 1px solid var(--color-rule);
+}
+
+/* The rose ribbon that marks the open leaf. */
+@utility ribbon {
+  position: relative;
+}
+@utility ribbon-mark {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--color-accent-strong);
+}
+
+/* A dotted leader between a label and its value, like an index line. */
+@utility leader {
+  flex: 1;
+  align-self: center;
+  height: 0;
+  border-bottom: 1.5px dotted color-mix(in srgb, var(--color-rule) 90%, transparent);
+}
+
+@keyframes ribbon-drop {
+  from {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  to {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+}
+@utility animate-ribbon {
+  animation: ribbon-drop 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }

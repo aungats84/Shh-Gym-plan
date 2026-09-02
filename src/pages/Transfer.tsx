@@ -214,7 +214,7 @@ export default function Transfer() {
         </p>
         <div className="mt-3 flex justify-center">
           {/* White background always, because a QR on a dark card will not scan. */}
-          <div className="rounded-[8px] bg-white p-3">
+          <div className="rounded-[16px] bg-white p-3">
             <canvas ref={canvasRef} width={260} height={260} aria-label="Transfer QR code" />
           </div>
         </div>
@@ -254,7 +254,7 @@ export default function Transfer() {
       >
         <Field label="What should happen to what is already on this device?">
           <div className="space-y-2">
-            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[8px] border border-line p-2 text-sm">
+            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[16px] border border-line p-2 text-sm">
               <input
                 type="radio"
                 name="mode"
@@ -267,7 +267,7 @@ export default function Transfer() {
                 newer version wins. Nothing is lost. <em>Recommended.</em>
               </span>
             </label>
-            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[8px] border border-line p-2 text-sm">
+            <label className="flex min-h-[44px] cursor-pointer items-start gap-3 rounded-[16px] border border-line p-2 text-sm">
               <input
                 type="radio"
                 name="mode"

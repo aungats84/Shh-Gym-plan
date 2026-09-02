@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Award, ChevronDown, ChevronUp } from 'lucide-react';
+import { Award, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { useData } from '@/state/DataContext';
 import { usePlan } from '@/state/usePlan';
 import ReadinessCheck from '@/components/ReadinessCheck';
@@ -168,9 +168,25 @@ export default function WorkoutSession() {
 
   return (
     <div className="space-y-4">
-      <SectionHeading sub={`${ACTION_LABELS[mode]} - ${doneSets} of ${totalSets} sets done`}>
-        {day.name}
-      </SectionHeading>
+      <SectionHeading sub={`${day.focus} · ${ACTION_LABELS[mode]}`}>{day.name}</SectionHeading>
+
+      <div className="rounded-[16px] border border-line bg-surface p-4 shadow-[var(--shadow-soft)] sm:p-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="label-caps text-[10px] text-faint">Session progress</span>
+          <span className="text-[13px] tabular-nums text-muted">
+            <b className="font-serif text-[20px] font-semibold text-text">{doneSets}</b> /{' '}
+            {totalSets} sets
+          </span>
+        </div>
+        <div className="mt-2.5 h-2 w-full overflow-hidden rounded-full bg-surface-2">
+          <div
+            className={`h-full rounded-full transition-[width] duration-500 ${
+              doneSets === totalSets && totalSets > 0 ? 'bg-win' : 'bg-accent-strong'
+            }`}
+            style={{ width: `${totalSets > 0 ? (doneSets / totalSets) * 100 : 0}%` }}
+          />
+        </div>
+      </div>
 
       {mode !== 'full' && (
         <Notice tone="info" title="Adjusted session">
@@ -198,7 +214,11 @@ export default function WorkoutSession() {
         return (
           <Card
             key={exerciseId}
-            title={substitutions[exerciseId] || ex.name}
+            title={
+              <span className="font-serif text-[19px] font-semibold leading-tight">
+                {substitutions[exerciseId] || ex.name}
+              </span>
+            }
             subtitle={`${ex.primary.map((m) => MUSCLE_LABELS[m]).join(', ')}${
               planned?.per_side ? ' - each side' : ''
             }`}
@@ -214,7 +234,7 @@ export default function WorkoutSession() {
                   type="button"
                   onClick={() => setOpen(isOpen ? null : exerciseId)}
                   aria-expanded={isOpen}
-                  className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-line"
+                  className="flex h-10 w-10 items-center justify-center rounded-[14px] border border-line"
                   aria-label={isOpen ? 'Hide details' : 'Show form tips'}
                 >
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -222,87 +242,105 @@ export default function WorkoutSession() {
               </div>
             }
           >
-            {planned?.note && <p className="mb-2 text-sm text-muted">{planned.note}</p>}
+            {planned?.note && <p className="mb-2.5 text-[13.5px] text-muted">{planned.note}</p>}
             {best && (
-              <p className="mb-2 text-xs text-muted">
-                Last time: {best.reps} reps at {best.weight_kg} kg ({best.date})
+              <p className="mb-2.5 text-[12px] text-muted">
+                <span className="label-caps text-[9.5px] text-faint">Last time</span> {best.reps}{' '}
+                reps · {best.weight_kg} kg · {best.date}
               </p>
             )}
 
-            <div className="space-y-2">
-              {rows.map((row) => {
-                const pr = isPersonalRecord(row, best);
-                return (
-                  <div
-                    key={row.set_index}
-                    className="flex flex-wrap items-center gap-2 rounded-[8px] border border-line p-2"
-                  >
-                    <span className="w-12 shrink-0 text-xs text-muted">
-                      Set {row.set_index + 1}
-                    </span>
-                    <span className="w-16 shrink-0 text-xs text-muted">{row.target_reps}</span>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      placeholder="reps"
-                      aria-label={`Reps for set ${row.set_index + 1}`}
-                      value={row.reps ?? ''}
-                      onChange={(e) =>
-                        updateSet(exerciseId, row.set_index, {
-                          reps: e.target.value ? Number(e.target.value) : null,
-                        })
-                      }
-                      className="h-11 w-16 rounded-[8px] border border-line bg-surface px-2 text-sm"
-                    />
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="0.5"
-                      placeholder="kg"
-                      aria-label={`Weight for set ${row.set_index + 1}`}
-                      value={row.weight_kg ?? ''}
-                      onChange={(e) =>
-                        updateSet(exerciseId, row.set_index, {
-                          weight_kg: e.target.value ? Number(e.target.value) : null,
-                        })
-                      }
-                      className="h-11 w-16 rounded-[8px] border border-line bg-surface px-2 text-sm"
-                    />
-                    <select
-                      aria-label={`Reps in reserve for set ${row.set_index + 1}`}
-                      value={row.rir ?? ''}
-                      onChange={(e) =>
-                        updateSet(exerciseId, row.set_index, {
-                          rir: e.target.value === '' ? null : Number(e.target.value),
-                        })
-                      }
-                      className="h-11 w-20 rounded-[8px] border border-line bg-surface px-1 text-sm"
-                    >
-                      <option value="">RIR</option>
-                      {[0, 1, 2, 3, 4, 5].map((n) => (
-                        <option key={n} value={n}>
-                          {n} left
-                        </option>
-                      ))}
-                    </select>
-                    {pr && (
-                      <span className="flex items-center gap-1 text-xs text-win">
-                        <Award className="h-3.5 w-3.5" aria-hidden /> Best yet
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => updateSet(exerciseId, row.set_index, { done: !row.done })}
-                      aria-pressed={row.done}
-                      className={`ml-auto h-11 shrink-0 rounded-[8px] border px-3 text-sm font-medium ${
-                        row.done ? 'border-win bg-win text-white' : 'border-line bg-surface'
-                      }`}
-                    >
-                      {row.done ? 'Done' : 'Mark done'}
-                    </button>
-                  </div>
-                );
-              })}
+            {/* the set ledger */}
+            <div className="overflow-hidden rounded-[16px] border border-line">
+              <div className="grid grid-cols-[1.5rem_1fr_1fr_3rem_2.75rem] items-center gap-2 border-b border-line bg-surface-2 px-3 py-2">
+                <span className="label-caps text-[9px] text-faint">Set</span>
+                <span className="label-caps text-center text-[9px] text-faint">Reps</span>
+                <span className="label-caps text-center text-[9px] text-faint">Kg</span>
+                <span className="label-caps text-center text-[9px] text-faint">RIR</span>
+                <span className="sr-only">Done</span>
+              </div>
+              <div className="divide-y divide-line">
+                {rows.map((row) => {
+                  const pr = isPersonalRecord(row, best);
+                  const inputClass =
+                    'h-10 w-full rounded-[16px] border border-line bg-surface-2 text-center text-[15px] tabular-nums transition-colors focus:border-accent focus:bg-surface';
+                  return (
+                    <div key={row.set_index} className="px-3 py-2.5">
+                      <div className="grid grid-cols-[1.5rem_1fr_1fr_3rem_2.75rem] items-center gap-2">
+                        <span className="font-serif text-[16px] tabular-nums text-faint">
+                          {row.set_index + 1}
+                        </span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          placeholder={row.target_reps}
+                          aria-label={`Reps for set ${row.set_index + 1}`}
+                          value={row.reps ?? ''}
+                          onChange={(e) =>
+                            updateSet(exerciseId, row.set_index, {
+                              reps: e.target.value ? Number(e.target.value) : null,
+                            })
+                          }
+                          className={inputClass}
+                        />
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          step="0.5"
+                          placeholder="–"
+                          aria-label={`Weight for set ${row.set_index + 1}`}
+                          value={row.weight_kg ?? ''}
+                          onChange={(e) =>
+                            updateSet(exerciseId, row.set_index, {
+                              weight_kg: e.target.value ? Number(e.target.value) : null,
+                            })
+                          }
+                          className={inputClass}
+                        />
+                        <select
+                          aria-label={`Reps in reserve for set ${row.set_index + 1}`}
+                          value={row.rir ?? ''}
+                          onChange={(e) =>
+                            updateSet(exerciseId, row.set_index, {
+                              rir: e.target.value === '' ? null : Number(e.target.value),
+                            })
+                          }
+                          className="h-10 w-full rounded-[16px] border border-line bg-surface-2 px-1 text-center text-[14px] tabular-nums transition-colors focus:border-accent focus:bg-surface"
+                        >
+                          <option value="">–</option>
+                          {[0, 1, 2, 3, 4, 5].map((n) => (
+                            <option key={n} value={n}>
+                              {n}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => updateSet(exerciseId, row.set_index, { done: !row.done })}
+                          aria-pressed={row.done}
+                          aria-label={
+                            row.done
+                              ? `Mark set ${row.set_index + 1} not done`
+                              : `Mark set ${row.set_index + 1} done`
+                          }
+                          className={`flex h-10 w-10 items-center justify-center rounded-full border transition-[transform,background-color,border-color] duration-150 active:scale-90 ${
+                            row.done
+                              ? 'border-win bg-win text-white'
+                              : 'border-line bg-surface text-faint hover:border-win/50 hover:text-win'
+                          }`}
+                        >
+                          <Check className="h-4 w-4" strokeWidth={3} aria-hidden />
+                        </button>
+                      </div>
+                      {pr && (
+                        <p className="mt-1.5 flex items-center gap-1 text-[11px] font-semibold text-win">
+                          <Award className="h-3.5 w-3.5" aria-hidden /> Best set yet
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             {planned && (
@@ -311,9 +349,9 @@ export default function WorkoutSession() {
               </div>
             )}
 
-            <div className="mt-3 rounded-[8px] border border-line bg-surface-2 p-3 text-sm">
-              <p className="font-medium">{advice.headline}</p>
-              <p className="mt-0.5 text-muted">{advice.detail}</p>
+            <div className="mt-3 rounded-[14px] border border-line bg-surface-2 p-3">
+              <p className="text-[13.5px] font-semibold text-accent">{advice.headline}</p>
+              <p className="mt-0.5 text-[13px] text-muted">{advice.detail}</p>
             </div>
 
             {isOpen && (

@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { readCache, writeCache, clearAllCache } from '@/lib/storage';
 import type {
+  CardioSession,
   DailyLog,
   Measurement,
   MealSelection,
@@ -26,6 +27,7 @@ type Collection =
   | 'workouts'
   | 'meal_selections'
   | 'measurements'
+  | 'cardio_sessions'
   | 'symptoms'
   | 'weekly_reviews'
   | 'plan_versions';
@@ -37,6 +39,7 @@ const KEY_OF: Record<Collection, (row: Record<string, unknown>) => string> = {
   workouts: (r) => `${r.date}|${r.day_key}`,
   meal_selections: (r) => `${r.date}|${r.slot}`,
   measurements: (r) => String(r.date),
+  cardio_sessions: (r) => `${r.date}|${r.created_at}`,
   symptoms: (r) => `${r.date}|${r.kind}|${r.created_at ?? ''}`,
   weekly_reviews: (r) => String(r.week_start),
   plan_versions: (r) => String(r.version),
@@ -49,6 +52,7 @@ export interface DataState {
   workouts: WorkoutSession[];
   meal_selections: MealSelection[];
   measurements: Measurement[];
+  cardio_sessions: CardioSession[];
   symptoms: SymptomLog[];
   weekly_reviews: WeeklyReview[];
   plan_versions: PlanVersion[];
@@ -61,6 +65,7 @@ export const EMPTY: DataState = {
   workouts: [],
   meal_selections: [],
   measurements: [],
+  cardio_sessions: [],
   symptoms: [],
   weekly_reviews: [],
   plan_versions: [],
@@ -114,8 +119,10 @@ function withMatchingTheme(data: DataState): DataState {
 }
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  // Spread over EMPTY so data saved before a new collection existed still gets
+  // its empty array, rather than `undefined` crashing the first write to it.
   const [state, setState] = useState<DataState>(() =>
-    withMatchingTheme(readCache<DataState>(CACHE_KEY, EMPTY)),
+    withMatchingTheme({ ...EMPTY, ...readCache<DataState>(CACHE_KEY, EMPTY) }),
   );
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(() =>
     readCache<string | null>(SAVED_KEY, null),

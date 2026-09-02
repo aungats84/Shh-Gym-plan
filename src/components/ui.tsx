@@ -15,7 +15,7 @@ function tone(t: Tone | undefined, fallback: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* Surfaces                                                            */
+/* Surfaces - a card is a ruled leaf of the dossier.                   */
 /* ------------------------------------------------------------------ */
 
 export function Card({
@@ -51,19 +51,21 @@ export function Card({
       info: 'bg-accent-wash border-accent/25',
     }[tone(toneProp, 'plain')] ?? 'bg-surface border-line';
 
+  const hasHeader = title || right || action || eyebrow;
+
   return (
     <section
-      className={`rounded-[16px] border ${tones} ${flush ? '' : 'p-4 sm:p-5'} shadow-[var(--shadow-soft)] ${className}`}
+      className={`rounded-[22px] border ${tones} ${flush ? '' : 'p-4 sm:p-5'} shadow-[var(--shadow-soft)] ${className}`}
     >
-      {(title || right || action) && (
-        <header className="mb-3 flex items-start justify-between gap-3">
+      {hasHeader && (
+        <header className="mb-3.5 flex items-start justify-between gap-3 border-b border-line/70 pb-3">
           <div className="min-w-0">
-            {eyebrow && (
-              <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-faint">
-                {eyebrow}
-              </p>
+            {eyebrow && <p className="label-caps mb-1 text-[10.5px] text-accent">{eyebrow}</p>}
+            {title && (
+              <h2 className="text-[15px] font-semibold leading-tight tracking-[-0.01em]">
+                {title}
+              </h2>
             )}
-            {title && <h2 className="text-[15px] font-semibold leading-tight">{title}</h2>}
             {subtitle && (
               <p className="mt-1 text-[12.5px] leading-relaxed text-muted">{subtitle}</p>
             )}
@@ -94,13 +96,13 @@ export function Detail({
   const id = useId();
 
   return (
-    <div className={tone === 'card' ? 'rounded-[12px] border border-line bg-surface-2' : ''}>
+    <div className={tone === 'card' ? 'rounded-[16px] border border-line bg-surface-2' : ''}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         aria-controls={id}
-        className={`flex min-h-[40px] w-full items-center gap-1.5 text-left text-[13px] font-medium text-accent ${
+        className={`flex min-h-[40px] w-full items-center gap-1.5 text-left text-[13px] font-semibold text-accent ${
           tone === 'card' ? 'px-3' : ''
         }`}
       >
@@ -147,15 +149,15 @@ export function Button({
 }) {
   const variants = {
     primary: 'bg-accent text-on-accent border-transparent shadow-[var(--shadow-soft)]',
-    secondary: 'bg-surface-2 text-text border-line',
-    ghost: 'bg-transparent text-muted border-transparent',
+    secondary: 'bg-surface text-text border-line hover:bg-surface-2',
+    ghost: 'bg-transparent text-muted border-transparent hover:text-text',
     danger: 'bg-alert text-white border-transparent',
   }[variant];
 
   const sizes = {
-    sm: 'min-h-[38px] px-3 text-[13px] rounded-[10px]',
-    md: 'min-h-[46px] px-4 text-[14px] rounded-[12px]',
-    lg: 'min-h-[54px] px-5 text-[15px] rounded-[14px]',
+    sm: 'min-h-[38px] px-3.5 text-[13px] rounded-[14px]',
+    md: 'min-h-[46px] px-5 text-[14px] rounded-[16px]',
+    lg: 'min-h-[54px] px-6 text-[15px] rounded-[18px]',
   }[size];
 
   return (
@@ -164,7 +166,7 @@ export function Button({
       onClick={onClick}
       disabled={disabled}
       aria-label={ariaLabel}
-      className={`inline-flex items-center justify-center gap-2 border font-semibold transition-[transform,opacity] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${variants} ${sizes} ${full ? 'w-full' : ''}`}
+      className={`inline-flex items-center justify-center gap-2 border font-semibold tracking-[0.01em] transition-[transform,background-color,opacity] duration-150 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40 ${variants} ${sizes} ${full ? 'w-full' : ''}`}
     >
       {children}
     </button>
@@ -184,7 +186,7 @@ export function Field({
 }) {
   return (
     <div className="mb-3.5">
-      <label htmlFor={htmlFor} className="mb-1.5 block text-[13px] font-semibold text-muted">
+      <label htmlFor={htmlFor} className="label-caps mb-1.5 block text-[10.5px] text-muted">
         {label}
       </label>
       {children}
@@ -194,7 +196,7 @@ export function Field({
 }
 
 const inputClass =
-  'w-full min-h-[46px] rounded-[12px] border border-line bg-surface-2 px-3.5 text-text placeholder:text-faint transition-colors focus:border-accent';
+  'w-full min-h-[46px] rounded-[16px] border border-line bg-surface-2 px-3.5 text-text placeholder:text-faint transition-colors focus:border-accent focus:bg-surface';
 
 export function TextInput(props: React.InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${inputClass} ${props.className ?? ''}`} />;
@@ -208,7 +210,7 @@ export function TextArea(props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   return (
     <textarea
       {...props}
-      className={`w-full rounded-[12px] border border-line bg-surface-2 p-3.5 text-text placeholder:text-faint focus:border-accent ${props.className ?? ''}`}
+      className={`w-full rounded-[16px] border border-line bg-surface-2 p-3.5 text-text placeholder:text-faint transition-colors focus:border-accent focus:bg-surface ${props.className ?? ''}`}
     />
   );
 }
@@ -223,7 +225,7 @@ export function Toggle({
   children: ReactNode;
 }) {
   return (
-    <label className="mb-2 flex min-h-[48px] cursor-pointer items-center gap-3 rounded-[12px] border border-line bg-surface-2 px-3 text-[14px]">
+    <label className="mb-2 flex min-h-[48px] cursor-pointer items-center gap-3 rounded-[16px] border border-line bg-surface-2 px-3 text-[14px]">
       <button
         type="button"
         role="switch"
@@ -269,10 +271,10 @@ export function Scale({
             aria-checked={value === n}
             aria-label={`${name}: ${n} out of 5`}
             onClick={() => onChange(n)}
-            className={`min-h-[52px] flex-1 rounded-[12px] border text-[15px] font-semibold transition-all duration-150 active:scale-95 ${
+            className={`min-h-[52px] flex-1 rounded-[16px] border text-[15px] font-semibold tabular-nums transition-all duration-150 active:scale-95 ${
               value === n
-                ? 'border-accent bg-accent text-on-accent'
-                : 'border-line bg-surface-2 text-muted'
+                ? 'border-accent bg-accent text-on-accent shadow-[var(--shadow-soft)]'
+                : 'border-line bg-surface-2 text-muted hover:border-accent/40'
             }`}
           >
             {n}
@@ -288,7 +290,7 @@ export function Scale({
 }
 
 /* ------------------------------------------------------------------ */
-/* Readouts                                                            */
+/* Readouts - ledger entries.                                          */
 /* ------------------------------------------------------------------ */
 
 export function Meter({
@@ -387,10 +389,10 @@ export function Ring({
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="font-display text-[26px] font-bold leading-none tabular-nums">
+          <span className="font-serif text-[30px] font-semibold leading-none tabular-nums">
             {value}
           </span>
-          <span className="mt-0.5 text-[11px] text-faint">of {max}</span>
+          <span className="mt-1 text-[11px] text-faint">of {max}</span>
         </div>
       </div>
       <p className="mt-2 text-[13px] font-semibold">{label}</p>
@@ -401,9 +403,9 @@ export function Ring({
 
 export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: string }) {
   return (
-    <div className="rounded-[12px] border border-line bg-surface p-3">
-      <div className="text-[11px] font-medium uppercase tracking-wide text-faint">{label}</div>
-      <div className="mt-1 font-display text-[19px] font-semibold leading-none tabular-nums">
+    <div className="rounded-[16px] border border-line bg-surface p-3">
+      <div className="label-caps text-[10px] text-faint">{label}</div>
+      <div className="mt-1.5 font-serif text-[22px] font-semibold leading-none tabular-nums">
         {value}
       </div>
       {sub && <div className="mt-1 text-[11px] text-faint">{sub}</div>}
@@ -423,7 +425,7 @@ export function Pill({ children, tone: toneProp = 'plain' }: { children: ReactNo
     }[tone(toneProp, 'plain')] ?? 'bg-surface-2 text-muted border-line';
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${tones}`}
+      className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold tabular-nums ${tones}`}
     >
       {children}
     </span>
@@ -451,7 +453,7 @@ export function Stepper({
   const pct = goal > 0 ? Math.min(100, (value / goal) * 100) : 0;
   const done = value >= goal;
   return (
-    <div className="rounded-[14px] border border-line bg-surface-2 p-3">
+    <div className="rounded-[18px] border border-line bg-surface-2 p-3">
       <div className="mb-2.5 flex items-center gap-2">
         <Icon className={`h-4 w-4 ${done ? 'text-win' : 'text-faint'}`} aria-hidden />
         <span className="text-[13px] font-semibold">{label}</span>
@@ -469,7 +471,7 @@ export function Stepper({
           type="button"
           aria-label={`Less ${label}`}
           onClick={() => onChange(value - step)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-line bg-surface active:scale-95"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface transition-colors hover:border-accent/40 active:scale-95"
         >
           <Minus className="h-4 w-4" aria-hidden />
         </button>
@@ -490,7 +492,7 @@ export function Stepper({
           type="button"
           aria-label={`More ${label}`}
           onClick={() => onChange(value + step)}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[12px] border border-line bg-surface active:scale-95"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line bg-surface transition-colors hover:border-accent/40 active:scale-95"
         >
           <Plus className="h-4 w-4" aria-hidden />
         </button>
@@ -522,10 +524,10 @@ export function Empty({
   action?: ReactNode;
 }) {
   return (
-    <div className="rounded-[14px] border border-dashed border-line px-4 py-7 text-center">
-      <p className="text-[14px] font-semibold">{title}</p>
-      <p className="mx-auto mt-1 max-w-sm text-[13px] text-muted">{detail}</p>
-      {action && <div className="mt-3 flex justify-center">{action}</div>}
+    <div className="rounded-[18px] border border-dashed border-rule bg-surface-2/40 px-4 py-8 text-center">
+      <p className="font-serif text-[17px] font-semibold">{title}</p>
+      <p className="mx-auto mt-1.5 max-w-sm text-[13px] leading-relaxed text-muted">{detail}</p>
+      {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );
 }
@@ -550,7 +552,7 @@ export function Notice({
   const map = table[tone(toneProp, 'accent')] ?? table.accent;
   const { Icon } = map;
   return (
-    <div className={`flex gap-3 rounded-[14px] border p-3.5 text-[13px] ${map.cls}`} role="note">
+    <div className={`flex gap-3 rounded-[18px] border p-3.5 text-[13px] ${map.cls}`} role="note">
       <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${map.ic}`} aria-hidden />
       <div className="min-w-0 leading-relaxed">
         {title && <p className="font-semibold">{title}</p>}
@@ -564,16 +566,19 @@ export function ScrollX({ children }: { children: ReactNode }) {
   return <div className="-mx-1 overflow-x-auto px-1">{children}</div>;
 }
 
+/** The masthead that opens every leaf: a dateline-style page title. */
 export function PageTitle({ children, sub }: { children: ReactNode; sub?: string }) {
   return (
-    <div className="mb-4">
-      <h1 className="font-display text-[22px] font-bold sm:text-[26px]">{children}</h1>
-      {sub && <p className="mt-1 text-[13px] text-muted">{sub}</p>}
+    <div className="mb-5 border-b border-rule pb-3.5">
+      <h1 className="font-serif text-[27px] font-semibold leading-[1.05] sm:text-[32px]">
+        {children}
+      </h1>
+      {sub && <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">{sub}</p>}
     </div>
   );
 }
 
-/** Horizontal tabs used at the top of a grouped section. */
+/** Ruled index tabs at the top of a grouped section. */
 export function SegTabs({
   items,
   active,
@@ -584,11 +589,8 @@ export function SegTabs({
   onPick: (key: string) => void;
 }) {
   return (
-    <div className="mb-4 w-full overflow-x-auto">
-      <div
-        role="tablist"
-        className="flex w-full min-w-max gap-1 rounded-[14px] border border-line bg-surface p-1"
-      >
+    <div className="mb-5 w-full overflow-x-auto border-b border-rule">
+      <div role="tablist" className="flex w-full min-w-max gap-1">
         {items.map((it) => {
           const on = it.key === active;
           return (
@@ -598,11 +600,17 @@ export function SegTabs({
               aria-selected={on}
               type="button"
               onClick={() => onPick(it.key)}
-              className={`min-h-[40px] flex-1 whitespace-nowrap rounded-[10px] px-3 text-[13px] font-semibold transition-colors ${
-                on ? 'bg-accent text-on-accent' : 'text-muted'
+              className={`relative min-h-[42px] whitespace-nowrap px-3.5 pb-2.5 pt-1 text-[13px] font-semibold transition-colors ${
+                on ? 'text-accent' : 'text-faint hover:text-muted'
               }`}
             >
               {it.label}
+              {on && (
+                <span
+                  aria-hidden
+                  className="absolute inset-x-2 -bottom-px h-[2.5px] rounded-full bg-accent-strong"
+                />
+              )}
             </button>
           );
         })}

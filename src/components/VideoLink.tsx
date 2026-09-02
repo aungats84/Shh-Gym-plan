@@ -36,7 +36,7 @@ export default function VideoLink({
         href={searchUrl(searchPhrase)}
         target="_blank"
         rel="noreferrer"
-        className="flex min-h-[46px] items-center gap-2.5 rounded-[12px] border border-line bg-surface-2 px-3 text-[13px] font-semibold"
+        className="flex min-h-[46px] items-center gap-2.5 rounded-[16px] border border-line bg-surface-2 px-3 text-[13px] font-semibold"
       >
         <Search className="h-4 w-4 shrink-0 text-faint" aria-hidden />
         Search YouTube for &quot;{exerciseName}&quot;
@@ -65,7 +65,7 @@ export default function VideoLink({
       rel="noreferrer"
       className="group flex items-center gap-3 rounded-[14px] border border-line bg-surface-2 p-2.5"
     >
-      <span className="relative block h-[54px] w-[96px] shrink-0 overflow-hidden rounded-[10px] bg-surface">
+      <span className="relative block h-[54px] w-[96px] shrink-0 overflow-hidden rounded-[14px] bg-surface">
         {!thumbBroken && (
           <img
             src={thumbUrl(video)}

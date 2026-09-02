@@ -85,8 +85,11 @@ export default function Onboarding() {
 
   return (
     <div className="safe-x mx-auto max-w-2xl p-4 pb-16">
-      <h1 className="text-xl font-semibold sm:text-2xl">Set up your plan</h1>
-      <p className="mt-1 text-sm text-muted">
+      <p className="label-caps text-[10.5px] text-accent">San Training</p>
+      <h1 className="mt-1.5 font-serif text-[28px] font-semibold leading-tight sm:text-[34px]">
+        Set up your plan
+      </h1>
+      <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
         These answers set your calorie, protein and training targets. Everything can be changed
         later in Settings. Nothing is sent anywhere - it is saved on this device only.
       </p>
